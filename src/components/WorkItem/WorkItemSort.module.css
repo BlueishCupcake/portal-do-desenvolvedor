@@ -1,0 +1,6 @@
+.sort {
+  display: flex;
+  align-items: end;
+  gap: 0.55rem;
+  min-width: min(100%, 16rem);
+}

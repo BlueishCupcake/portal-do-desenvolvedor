@@ -1,0 +1,85 @@
+.section,
+.tableWrap {
+  width: 100%;
+  min-width: 0;
+}
+
+.tableWrap {
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 0.85rem 1rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table th {
+  color: var(--color-ink-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.select {
+  width: 2.75rem;
+}
+
+.bug {
+  width: 8.5rem;
+}
+
+.board {
+  width: 12rem;
+}
+
+.assignee {
+  width: 10rem;
+}
+
+.releasePr {
+  width: 8.5rem;
+}
+
+.deployed {
+  width: 7.5rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-start;
+  padding-top: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .table,
+  .table thead,
+  .table tbody,
+  .table tr,
+  .table th,
+  .table td {
+    display: block;
+    width: 100%;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tr {
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-line);
+  }
+}

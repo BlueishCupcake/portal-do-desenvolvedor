@@ -1,0 +1,13 @@
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  align-items: end;
+}
+
+.selects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  min-width: min(100%, 22rem);
+}

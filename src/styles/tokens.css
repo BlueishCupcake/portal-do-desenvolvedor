@@ -1,0 +1,83 @@
+:root {
+  --color-ink: var(--color-gray-900, #0f172a);
+  --color-ink-soft: var(--color-slate-600, #475569);
+  --color-paper: var(--color-slate-50, #f8fafc);
+  --color-surface: var(--color-white-100, #ffffff);
+  --color-surface-strong: var(--color-white-100, #ffffff);
+  --color-line: var(--color-slate-200, #e2e8f0);
+  --color-accent: var(--color-blue-600, #2563eb);
+  --color-accent-soft: var(--color-blue-50, #eff6ff);
+  --color-header: var(--color-white-100, #ffffff);
+  --color-header-text: var(--color-gray-900, #0f172a);
+  --color-danger: var(--color-red-600, #dc2626);
+  --color-danger-soft: var(--color-red-50, #fef2f2);
+  --color-focus: var(--color-blue-500, #3b82f6);
+  --shadow-soft: var(--shadow-low, 0 10px 30px rgba(15, 23, 42, 0.08));
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --font-sans: var(--typography-family-font-family-sans), 'Segoe UI', sans-serif;
+  --status-development: #ca8a04;
+  --status-qa: #2563eb;
+  --status-deploy: #7c3aed;
+  --status-doing: #16a34a;
+  --status-done: #15803d;
+  --status-blocked: #dc2626;
+  --status-default: #64748b;
+}
+
+[data-status='development'] {
+  --status-color: var(--status-development);
+}
+
+[data-status='qa'] {
+  --status-color: var(--status-qa);
+}
+
+[data-status='deploy'] {
+  --status-color: var(--status-deploy);
+}
+
+[data-status='doing'] {
+  --status-color: var(--status-doing);
+}
+
+[data-status='done'] {
+  --status-color: var(--status-done);
+}
+
+[data-status='blocked'] {
+  --status-color: var(--status-blocked);
+}
+
+[data-status='default'] {
+  --status-color: var(--status-default);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --color-ink: #f8fafc;
+  --color-ink-soft: #cbd5e1;
+  --color-paper: #020617;
+  --color-surface: #0f172a;
+  --color-surface-strong: #1e293b;
+  --color-line: #334155;
+  --color-accent: #93c5fd;
+  --color-accent-soft: #172554;
+  --color-header: #0f172a;
+  --color-header-text: #f8fafc;
+  --color-danger: #f87171;
+  --color-danger-soft: #450a0a;
+  --color-focus: #93c5fd;
+  --shadow-soft: 0 10px 30px rgba(2, 6, 23, 0.35);
+  --global-text-title-color: #f8fafc;
+  --global-text-secondary-text-color: #cbd5e1;
+  --global-text-brand-color: #93c5fd;
+  --global-background-body: #020617;
+  --global-background-secondary-color: #0f172a;
+  --color-neutral-900: #f8fafc;
+  --color-neutral-800: #e2e8f0;
+  --color-neutral-700: #cbd5e1;
+  --color-gray-900: #f8fafc;
+  --color-gray-800: #e2e8f0;
+  --theme-foreground-foreground: #f8fafc;
+}

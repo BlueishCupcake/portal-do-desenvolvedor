@@ -1,0 +1,21 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.list {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0;
+}
+
+.list div {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.list dd {
+  margin: 0;
+  font-weight: 600;
+}

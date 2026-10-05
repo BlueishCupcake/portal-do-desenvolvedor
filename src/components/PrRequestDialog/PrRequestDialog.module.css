@@ -1,0 +1,22 @@
+.content {
+  display: grid;
+  gap: 1rem;
+}
+
+.list {
+  display: grid;
+  gap: 0.85rem;
+  margin: 0;
+  padding-left: 1.15rem;
+}
+
+.list li {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}

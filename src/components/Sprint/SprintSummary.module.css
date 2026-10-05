@@ -1,0 +1,36 @@
+.section {
+  width: 100%;
+}
+
+.section > :first-child {
+  width: 100%;
+  max-width: none !important;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.selector {
+  max-width: 28rem;
+}
+
+.period {
+  margin: 0;
+}
+
+.short {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .full {
+    display: none;
+  }
+
+  .short {
+    display: inline;
+  }
+}

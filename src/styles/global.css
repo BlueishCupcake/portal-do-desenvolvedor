@@ -1,0 +1,95 @@
+@import './tokens.css';
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  font-family: var(--font-sans);
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+a {
+  color: inherit;
+}
+
+[data-theme='dark'] h1,
+[data-theme='dark'] h2,
+[data-theme='dark'] h3,
+[data-theme='dark'] h4,
+[data-theme='dark'] h5,
+[data-theme='dark'] h6,
+[data-theme='dark'] label,
+[data-theme='dark'] legend,
+[data-theme='dark'] th,
+[data-theme='dark'] dt,
+[data-theme='dark'] dd {
+  color: var(--color-ink);
+}
+
+[data-theme='dark'] [class*='muted'],
+[data-theme='dark'] [data-color='muted'] {
+  color: var(--color-ink-soft);
+}
+
+[data-theme='dark'] .tag,
+[data-theme='dark'] .tag * {
+  color: #111827 !important;
+  --_badge-fg: #111827;
+}
+
+[data-theme='dark'] .tag[data-tag='bug'] {
+  background-color: #fecaca !important;
+}
+
+[data-theme='dark'] .tag[data-tag='fixed'],
+[data-theme='dark'] .tag[data-tag='deployed-yes'],
+[data-theme='dark'] .tag[data-tag='release-created'] {
+  background-color: #bbf7d0 !important;
+}
+
+[data-theme='dark'] .tag[data-tag='deployed-no'],
+[data-theme='dark'] .tag[data-tag='release-missing'],
+[data-theme='dark'] .tag[data-status='default'] {
+  background-color: #e5e7eb !important;
+}
+
+[data-theme='dark'] .tag[data-status='qa'] {
+  background-color: #bfdbfe !important;
+}
+
+[data-theme='dark'] .tag[data-status='development'],
+[data-theme='dark'] .tag[data-status='deploy'] {
+  background-color: #fde68a !important;
+}
+
+[data-theme='dark'] .tag[data-status='doing'],
+[data-theme='dark'] .tag[data-status='done'] {
+  background-color: #bbf7d0 !important;
+}
+
+[data-theme='dark'] .tag[data-status='blocked'] {
+  background-color: #fecaca !important;
+}
