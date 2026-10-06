@@ -27,9 +27,16 @@ testes automatizados com Vitest.
 ### Lead Mode
 
 O Lead Mode carrega todos os itens da Sprint e mostra o responsável por cada
-um. É possível selecionar tarefas de um único desenvolvedor e gerar uma
+um. Ao selecionar tarefas de um único desenvolvedor, é possível gerar uma
 mensagem profissional, em português, solicitando a criação das pull requests.
 A mensagem contém links para os Work Items e pode ser copiada.
+
+Ao selecionar pelo menos uma tarefa, a ação **Create deploy card** cria um Work
+Item no Azure DevOps. O usuário informa o título e o portal monta a descrição
+com as aplicações afetadas, pull requests destinadas à branch `main` e
+Stories/Features relacionadas. As pull requests e os Work Items são exibidos
+como links. As tarefas selecionadas também são vinculadas ao novo cartão. A
+criação real está disponível com o provider `rest`.
 
 ### To Do's
 
@@ -76,8 +83,9 @@ Copy-Item .env.example .env
 Crie um PAT em **Azure DevOps → User settings → Personal access tokens** com os
 seguintes escopos:
 
-- **Work Items (Read)**;
+- **Work Items (Read & write)**;
 - **Project and Team (Read)**;
+- **Code (Read)**;
 - **Build (Read)**.
 
 Configure o arquivo `.env`:
@@ -92,6 +100,7 @@ AZURE_DEVOPS_PIPELINE_PROJECT=projeto-das-pipelines
 AZURE_DEVOPS_PIPELINE_DEFINITION_IDS=690,1132,848
 
 AZURE_DEVOPS_PAT=seu-pat
+AZURE_DEVOPS_DEPLOY_WORK_ITEM_TYPE=Task
 ```
 
 O `.env` está no `.gitignore` e **nunca deve ser commitado**. O PAT não usa o
@@ -103,6 +112,9 @@ do navegador.
 - `VITE_AZURE_DEVOPS_ORGANIZATION`: nome da organização na URL do Azure;
 - `VITE_AZURE_DEVOPS_PROJECT`: projeto que contém os Work Items;
 - `VITE_AZURE_DEVOPS_TEAM`: time usado para localizar Sprints e iterações.
+- `AZURE_DEVOPS_DEPLOY_WORK_ITEM_TYPE`: tipo usado ao criar o cartão de deploy;
+  o padrão é `Task`. Informe o nome exato de outro tipo existente no processo do
+  projeto, se necessário.
 
 ### Configuração das pipelines
 

@@ -1,3 +1,4 @@
+import type { CreateDeployCardInput, DeployCard } from '@/types/deployCard.ts';
 import type { Developer } from '@/types/developer.ts';
 import type { PipelineRun } from '@/types/pipeline.ts';
 import type { Sprint } from '@/types/sprint.ts';
@@ -15,6 +16,7 @@ export interface AzureDevOpsService {
     options?: WorkItemQueryOptions,
   ): Promise<WorkItem[]>;
   getWorkItemDetails(id: number): Promise<WorkItemDetails>;
+  createDeployCard(input: CreateDeployCardInput): Promise<DeployCard>;
 }
 
 export interface WorkItemQueryOptions {
@@ -55,6 +57,16 @@ export interface AzureWorkItem {
   relations?: AzureWorkItemRelation[];
   deployed?: boolean;
   releasePrCreated?: boolean;
+  pullRequests?: AzurePullRequest[];
+}
+
+export interface AzurePullRequest {
+  id: number;
+  repositoryName: string;
+  projectName: string;
+  targetRefName: string;
+  status?: string;
+  url?: string;
 }
 
 export interface AzureSprint {

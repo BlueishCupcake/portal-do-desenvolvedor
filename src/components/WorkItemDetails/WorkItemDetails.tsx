@@ -2,9 +2,9 @@ import { Drawer, Links, Text, TitleV2 } from '@poliedro/tamentai/web';
 
 import { BoardStatus } from '@/components/Board/BoardStatus.tsx';
 import { DeployedIndicator } from '@/components/DeployedIndicator/DeployedIndicator.tsx';
-import { ReleasePrIndicator } from '@/components/ReleasePrIndicator/ReleasePrIndicator.tsx';
 import { ErrorState } from '@/components/ErrorState/ErrorState.tsx';
 import { DashboardSkeleton } from '@/components/Loading/DashboardSkeleton.tsx';
+import { ReleasePrIndicator } from '@/components/ReleasePrIndicator/ReleasePrIndicator.tsx';
 import styles from '@/components/WorkItemDetails/WorkItemDetails.module.css';
 import type { WorkItemDetails as WorkItemDetailsModel } from '@/types/workItem.ts';
 import { formatDate } from '@/utils/formatDate.ts';

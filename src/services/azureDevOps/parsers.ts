@@ -1,6 +1,7 @@
 import type {
   AzureIdentity,
   AzureIdentityRef,
+  AzurePullRequest,
   AzureSprint,
   AzureWorkItem,
   AzureWorkItemFields,
@@ -47,6 +48,34 @@ function readAssignedTo(source: JsonObject): AzureIdentity | string | undefined 
     uniqueName: readStringField(value, 'uniqueName'),
     id: readStringField(value, 'id'),
   };
+}
+
+function parsePullRequests(source: JsonObject): AzurePullRequest[] {
+  return (readArrayField(source, 'pullRequests') ?? []).flatMap((value) => {
+    if (!isJsonObject(value)) {
+      return [];
+    }
+
+    const id = readNumberField(value, 'id');
+    const repositoryName = readStringField(value, 'repositoryName');
+    const projectName = readStringField(value, 'projectName');
+    const targetRefName = readStringField(value, 'targetRefName');
+
+    if (id === undefined || !repositoryName || !projectName || !targetRefName) {
+      return [];
+    }
+
+    return [
+      {
+        id,
+        repositoryName,
+        projectName,
+        targetRefName,
+        status: readStringField(value, 'status'),
+        url: readStringField(value, 'url'),
+      },
+    ];
+  });
 }
 
 export function parseAzureWorkItemFields(source: JsonObject): AzureWorkItemFields {
@@ -106,10 +135,7 @@ export function parseAzureWorkItem(payload: JsonValue): AzureWorkItem {
       }
 
       const url = readStringField(item, 'url');
-      if (
-        !url ||
-        (!/workItems\/\d+$/i.test(url) && !/PullRequestId\//i.test(url))
-      ) {
+      if (!url || (!/workItems\/\d+$/i.test(url) && !/PullRequestId\//i.test(url))) {
         return [];
       }
 
@@ -122,6 +148,7 @@ export function parseAzureWorkItem(payload: JsonValue): AzureWorkItem {
     }),
     deployed: payload.deployed === true,
     releasePrCreated: payload.releasePrCreated === true,
+    pullRequests: parsePullRequests(payload),
   };
 }
 

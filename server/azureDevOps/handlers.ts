@@ -26,6 +26,8 @@ interface JsonRecord {
   [key: string]: unknown;
 }
 
+class InvalidRequestError extends Error {}
+
 function isRecord(value: unknown): value is JsonRecord {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -36,6 +38,61 @@ function readString(value: unknown): string | undefined {
 
 function readNumber(value: unknown): number | undefined {
   return typeof value === 'number' ? value : undefined;
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+function descriptionToHtml(value: string): string {
+  return value
+    .split('\n')
+    .map((line) => {
+      const link = /^\[(.+)\]\((https?:\/\/[^)\s]+)\)$/.exec(line);
+      if (!link?.[1] || !link[2]) {
+        return escapeHtml(line);
+      }
+
+      return `<a href="${escapeHtml(link[2])}">${escapeHtml(link[1])}</a>`;
+    })
+    .join('<br>');
+}
+
+function readDeployCardPayload(payload: unknown): {
+  title: string;
+  description: string;
+  workItemIds: number[];
+  iterationPath?: string;
+} {
+  if (!isRecord(payload)) {
+    throw new InvalidRequestError('Dados do cartão de deploy inválidos.');
+  }
+
+  const title = readString(payload.title)?.trim();
+  const description = readString(payload.description)?.trim();
+  const workItemIds = Array.isArray(payload.workItemIds)
+    ? payload.workItemIds.filter(
+        (id): id is number => typeof id === 'number' && Number.isInteger(id),
+      )
+    : [];
+
+  if (!title || !description || workItemIds.length === 0) {
+    throw new InvalidRequestError(
+      'Informe o título, a descrição e ao menos uma tarefa para criar o cartão de deploy.',
+    );
+  }
+
+  return {
+    title,
+    description,
+    workItemIds: [...new Set(workItemIds)],
+    iterationPath: readString(payload.iterationPath)?.trim(),
+  };
 }
 
 async function resolveTeam(config: AzureDevOpsServerConfig): Promise<string> {
@@ -201,9 +258,25 @@ async function fetchPullRequestSummary(
         continue;
       }
 
+      const repository = isRecord(payload.repository)
+        ? payload.repository
+        : undefined;
+      const repositoryProject =
+        repository && isRecord(repository.project) ? repository.project : undefined;
+      const links = isRecord(payload._links) ? payload._links : undefined;
+      const webLink = links && isRecord(links.web) ? links.web : undefined;
+      const repositoryName = readString(repository?.name) ?? ref.repositoryId;
+      const projectName = readString(repositoryProject?.name) ?? project;
+
       return {
+        id: readNumber(payload.pullRequestId) ?? ref.pullRequestId,
+        repositoryName,
+        projectName,
         status: readString(payload.status),
         targetRefName: readString(payload.targetRefName),
+        url:
+          readString(webLink?.href) ??
+          `https://dev.azure.com/${encodeSegment(config.organization)}/${encodeSegment(projectName)}/_git/${encodeSegment(repositoryName)}/pullrequest/${String(ref.pullRequestId)}`,
       };
     } catch {
       continue;
@@ -227,6 +300,7 @@ async function withDeployment(
 
   const deployedByKey = new Map<string, boolean>();
   const releasePrByKey = new Map<string, boolean>();
+  const pullRequestByKey = new Map<string, AzurePullRequestSummary>();
 
   await Promise.all(
     [...uniqueRefs.entries()].map(async ([key, ref]) => {
@@ -236,6 +310,9 @@ async function withDeployment(
         key,
         summary ? isReleasePullRequestCreated(summary) : false,
       );
+      if (summary) {
+        pullRequestByKey.set(key, summary);
+      }
     }),
   );
 
@@ -250,8 +327,61 @@ async function withDeployment(
       ...item,
       deployed,
       releasePrCreated,
+      pullRequests: refs.flatMap((ref) => {
+        const pullRequest = pullRequestByKey.get(pullRequestCacheKey(ref));
+        return pullRequest ? [pullRequest] : [];
+      }),
     };
   });
+}
+
+async function createDeployCard(
+  config: AzureDevOpsServerConfig,
+  payload: unknown,
+): Promise<JsonRecord> {
+  const input = readDeployCardPayload(payload);
+  const description = descriptionToHtml(input.description);
+  const patch: JsonRecord[] = [
+    { op: 'add', path: '/fields/System.Title', value: input.title },
+    { op: 'add', path: '/fields/System.Description', value: description },
+  ];
+
+  if (input.iterationPath) {
+    patch.push({
+      op: 'add',
+      path: '/fields/System.IterationPath',
+      value: input.iterationPath,
+    });
+  }
+
+  for (const workItemId of input.workItemIds) {
+    patch.push({
+      op: 'add',
+      path: '/relations/-',
+      value: {
+        rel: 'System.LinkTypes.Related',
+        url: `https://dev.azure.com/${encodeSegment(config.organization)}/${encodeSegment(config.project)}/_apis/wit/workItems/${String(workItemId)}`,
+        attributes: {
+          comment:
+            'Tarefa incluída no cartão de deploy pelo Portal do Desenvolvedor.',
+        },
+      },
+    });
+  }
+
+  const created = await azureDevOpsRequest(
+    config,
+    withApiVersion(
+      `/${encodeSegment(config.project)}/_apis/wit/workitems/$${encodeSegment(config.deployWorkItemType)}`,
+    ),
+    {
+      method: 'POST',
+      contentType: 'application/json-patch+json',
+      body: JSON.stringify(patch),
+    },
+  );
+
+  return withWebUrl(config, created);
 }
 
 async function fetchWorkItemsByIds(
@@ -315,8 +445,12 @@ export async function handleAzureDevOpsApi(
   pathname: string,
   searchParams: URLSearchParams,
   env: Record<string, string | undefined> = process.env,
+  requestBody?: unknown,
 ): Promise<AzureDevOpsApiResult> {
-  if (method !== 'GET') {
+  if (
+    method !== 'GET' &&
+    !(method === 'POST' && pathname === '/api/azure-devops/deploy-cards')
+  ) {
     return { status: 405, body: { message: 'Método não permitido.' } };
   }
 
@@ -333,6 +467,13 @@ export async function handleAzureDevOpsApi(
   }
 
   try {
+    if (method === 'POST' && pathname === '/api/azure-devops/deploy-cards') {
+      return {
+        status: 201,
+        body: await createDeployCard(config, requestBody),
+      };
+    }
+
     const team = await resolveTeam(config);
     const teamSegment = `/${encodeSegment(config.project)}/${encodeSegment(team)}`;
 
@@ -452,6 +593,9 @@ export async function handleAzureDevOpsApi(
         ? error.message
         : 'Não foi possível comunicar com o Azure DevOps.';
 
-    return { status: 502, body: { message } };
+    return {
+      status: error instanceof InvalidRequestError ? 400 : 502,
+      body: { message },
+    };
   }
 }

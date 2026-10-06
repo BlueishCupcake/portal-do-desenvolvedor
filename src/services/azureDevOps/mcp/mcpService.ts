@@ -109,5 +109,11 @@ export function createMcpAzureDevOpsService(
 
       return mapAzureWorkItemDetails(workItem, sprintName);
     },
+
+    async createDeployCard() {
+      throw new AzureDevOpsError(
+        'A criação de cartão de deploy requer o provider REST e um PAT com Work Items (Read & write).',
+      );
+    },
   };
 }

@@ -1,10 +1,11 @@
+import { Button, Checkbox } from '@poliedro/tamentai/web';
 import { useEffect, useMemo, useState } from 'react';
 
-import { Button, Checkbox } from '@poliedro/tamentai/web';
-
 import styles from '@/components/Board/WorkItemBoard.module.css';
+import { DeployCardDialog } from '@/components/DeployCardDialog/DeployCardDialog.tsx';
 import { PrRequestDialog } from '@/components/PrRequestDialog/PrRequestDialog.tsx';
 import { WorkItemRow } from '@/components/WorkItem/WorkItemRow.tsx';
+import type { CreateDeployCardInput, DeployCard } from '@/types/deployCard.ts';
 import type { WorkItem } from '@/types/workItem.ts';
 import { resolveBugStatus } from '@/utils/resolveBugStatus.ts';
 
@@ -13,6 +14,7 @@ interface WorkItemBoardProps {
   catalog?: WorkItem[];
   leadMode?: boolean;
   onSelect: (id: number) => void;
+  onCreateDeployCard?: (input: CreateDeployCardInput) => Promise<DeployCard>;
 }
 
 export function WorkItemBoard({
@@ -20,13 +22,12 @@ export function WorkItemBoard({
   catalog = workItems,
   leadMode = false,
   onSelect,
+  onCreateDeployCard,
 }: WorkItemBoardProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [isRequestOpen, setIsRequestOpen] = useState(false);
-  const visibleIds = useMemo(
-    () => workItems.map((item) => item.id),
-    [workItems],
-  );
+  const [isDeployOpen, setIsDeployOpen] = useState(false);
+  const visibleIds = useMemo(() => workItems.map((item) => item.id), [workItems]);
 
   useEffect(() => {
     setSelectedIds((current) => {
@@ -39,31 +40,19 @@ export function WorkItemBoard({
     if (!leadMode) {
       setSelectedIds([]);
       setIsRequestOpen(false);
+      setIsDeployOpen(false);
     }
   }, [leadMode]);
 
   const selectedItems = workItems.filter((item) => selectedIds.includes(item.id));
-  const selectedAssignee = selectedItems[0]?.assignedTo;
-  const assigneeItems = selectedAssignee
-    ? workItems.filter((item) => item.assignedTo === selectedAssignee)
-    : [];
-  const assigneeIds = assigneeItems.map((item) => item.id);
+  const selectedAssignees = new Set(selectedItems.map((item) => item.assignedTo));
+  const sameAssignee = selectedAssignees.size === 1;
+  const canCreateDeployCard = selectedItems.length > 0;
   const allSelected =
-    assigneeIds.length > 0 && assigneeIds.every((id) => selectedIds.includes(id));
+    visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
   const someSelected = selectedIds.length > 0 && !allSelected;
 
   function toggleItem(id: number, selected: boolean) {
-    const item = workItems.find((workItem) => workItem.id === id);
-
-    if (
-      selected &&
-      selectedAssignee &&
-      item &&
-      item.assignedTo !== selectedAssignee
-    ) {
-      return;
-    }
-
     setSelectedIds((current) => {
       if (selected) {
         return current.includes(id) ? current : [...current, id];
@@ -84,14 +73,10 @@ export function WorkItemBoard({
                   <Checkbox
                     checked={allSelected}
                     indeterminate={someSelected}
-                    disabled={!selectedAssignee}
-                    aria-label={
-                      selectedAssignee
-                        ? `Selecionar todas as tarefas de ${selectedAssignee}`
-                        : 'Selecione uma tarefa para marcar todas do mesmo responsável'
-                    }
+                    disabled={visibleIds.length === 0}
+                    aria-label="Selecionar todas as tarefas visíveis"
                     onCheckedChange={(checked) => {
-                      setSelectedIds(checked === true ? assigneeIds : []);
+                      setSelectedIds(checked === true ? visibleIds : []);
                     }}
                   />
                 </th>
@@ -123,10 +108,7 @@ export function WorkItemBoard({
                 bugStatus={resolveBugStatus(workItem, catalog)}
                 leadMode={leadMode}
                 selected={selectedIds.includes(workItem.id)}
-                selectDisabled={
-                  Boolean(selectedAssignee) &&
-                  workItem.assignedTo !== selectedAssignee
-                }
+                selectDisabled={false}
                 onToggleSelect={toggleItem}
                 onSelect={onSelect}
               />
@@ -136,15 +118,28 @@ export function WorkItemBoard({
       </div>
       {leadMode && selectedItems.length > 0 ? (
         <div className={styles.actions}>
-          <Button
-            type="button"
-            color="primary"
-            onClick={() => {
-              setIsRequestOpen(true);
-            }}
-          >
-            Request PR creation
-          </Button>
+          {sameAssignee ? (
+            <Button
+              type="button"
+              color="primary"
+              onClick={() => {
+                setIsRequestOpen(true);
+              }}
+            >
+              Request PR creation
+            </Button>
+          ) : null}
+          {canCreateDeployCard ? (
+            <Button
+              type="button"
+              color="primary"
+              onClick={() => {
+                setIsDeployOpen(true);
+              }}
+            >
+              Create deploy card
+            </Button>
+          ) : null}
         </div>
       ) : null}
       <PrRequestDialog
@@ -152,6 +147,24 @@ export function WorkItemBoard({
         workItems={selectedItems}
         onClose={() => {
           setIsRequestOpen(false);
+        }}
+      />
+      <DeployCardDialog
+        open={isDeployOpen}
+        workItems={selectedItems}
+        catalog={catalog}
+        onCreate={
+          onCreateDeployCard ??
+          (() =>
+            Promise.reject(
+              new Error('A criação do cartão de deploy não está configurada.'),
+            ))
+        }
+        onClose={() => {
+          setIsDeployOpen(false);
+        }}
+        onCreated={() => {
+          setSelectedIds([]);
         }}
       />
     </section>

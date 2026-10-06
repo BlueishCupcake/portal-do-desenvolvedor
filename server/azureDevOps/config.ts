@@ -3,6 +3,7 @@ export interface AzureDevOpsServerConfig {
   project: string;
   team: string;
   pat: string;
+  deployWorkItemType: string;
   pipelineProject: string;
   pipelineDefinitionIds: string[];
 }
@@ -41,8 +42,9 @@ export function readAzureDevOpsServerConfig(
     project,
     team: readValue(env, ['AZURE_DEVOPS_TEAM', 'VITE_AZURE_DEVOPS_TEAM']),
     pat: readValue(env, ['AZURE_DEVOPS_PAT']),
-    pipelineProject:
-      readValue(env, ['AZURE_DEVOPS_PIPELINE_PROJECT']) || project,
+    deployWorkItemType:
+      readValue(env, ['AZURE_DEVOPS_DEPLOY_WORK_ITEM_TYPE']) || 'Task',
+    pipelineProject: readValue(env, ['AZURE_DEVOPS_PIPELINE_PROJECT']) || project,
     pipelineDefinitionIds: pipelineDefinitions
       .split(',')
       .map((value) => value.trim())

@@ -42,6 +42,14 @@ export function mapAzureWorkItem(workItem: AzureWorkItem): WorkItem {
     deployed: workItem.deployed === true,
     releasePrCreated: workItem.releasePrCreated === true,
     storyPoints: readStoryPoints(workItem),
+    pullRequests: workItem.pullRequests?.map((pullRequest) => ({
+      id: pullRequest.id,
+      repositoryName: pullRequest.repositoryName,
+      projectName: pullRequest.projectName,
+      targetBranch: pullRequest.targetRefName,
+      status: pullRequest.status,
+      url: pullRequest.url,
+    })),
   };
 }
 

@@ -5,12 +5,15 @@ export interface AzurePullRequestRef {
 }
 
 export interface AzurePullRequestSummary {
+  id?: number;
+  repositoryName?: string;
+  projectName?: string;
   status?: string;
   targetRefName?: string;
+  url?: string;
 }
 
-const ENCODED_PR_PATTERN =
-  /PullRequestId\/([^/]+)%2F([^/%]+)%2F(\d+)/i;
+const ENCODED_PR_PATTERN = /PullRequestId\/([^/]+)%2F([^/%]+)%2F(\d+)/i;
 const PLAIN_PR_PATTERN = /PullRequestId\/([^/]+)\/([^/]+)\/(\d+)/i;
 
 export function parsePullRequestArtifact(

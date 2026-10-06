@@ -47,6 +47,96 @@ describe('azure devops api handlers', () => {
     ).resolves.toMatchObject({ status: 404 });
   });
 
+  it('creates a deploy card linked to the selected work items', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+
+      expect(url).toContain('/_apis/wit/workitems/$Task');
+      expect(init?.method).toBe('POST');
+      expect(init?.headers).toMatchObject({
+        'Content-Type': 'application/json-patch+json',
+      });
+      expect(JSON.parse(String(init?.body))).toEqual(
+        expect.arrayContaining([
+          {
+            op: 'add',
+            path: '/fields/System.Title',
+            value: 'Deploy Sprint 42',
+          },
+          {
+            op: 'add',
+            path: '/fields/System.Description',
+            value:
+              'Stories/Features:<br><a href="https://dev.azure.com/items/61407?x=1&amp;y=2">USER STORY 61407: Ajustar API</a>',
+          },
+          expect.objectContaining({
+            op: 'add',
+            path: '/relations/-',
+            value: expect.objectContaining({
+              rel: 'System.LinkTypes.Related',
+              url: expect.stringContaining('/workItems/61407'),
+            }),
+          }),
+        ]),
+      );
+
+      return {
+        ok: true,
+        json: async () => ({
+          id: 120000,
+          fields: {
+            'System.Title': 'Deploy Sprint 42',
+            'System.WorkItemType': 'Task',
+            'System.State': 'New',
+            'System.IterationPath': 'Portal\\Sprint 42',
+          },
+        }),
+      };
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(
+      handleAzureDevOpsApi(
+        'POST',
+        '/api/azure-devops/deploy-cards',
+        new URLSearchParams(),
+        env,
+        {
+          title: 'Deploy Sprint 42',
+          description:
+            'Stories/Features:\n[USER STORY 61407: Ajustar API](https://dev.azure.com/items/61407?x=1&y=2)',
+          workItemIds: [61407, 61408],
+          iterationPath: 'Portal\\Sprint 42',
+        },
+      ),
+    ).resolves.toMatchObject({
+      status: 201,
+      body: {
+        id: 120000,
+        url: 'https://dev.azure.com/contoso/portal/_workitems/edit/120000',
+      },
+    });
+  });
+
+  it('validates deploy card input before calling Azure DevOps', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(
+      handleAzureDevOpsApi(
+        'POST',
+        '/api/azure-devops/deploy-cards',
+        new URLSearchParams(),
+        env,
+        { title: '', description: '', workItemIds: [] },
+      ),
+    ).resolves.toMatchObject({
+      status: 400,
+      body: { message: expect.stringContaining('título') },
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it('loads the current user, sprint and assigned work items', async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
@@ -406,6 +496,9 @@ describe('azure devops api handlers', () => {
     expect(workItems.body).toMatchObject({
       value: [{ id: 88, deployed: true, releasePrCreated: true }],
     });
+    expect(JSON.stringify(workItems.body)).toContain(
+      'https://dev.azure.com/contoso/project/_git/repo-1/pullrequest/42',
+    );
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining('/_apis/git/repositories/repo-1/pullrequests/42'),
       expect.anything(),

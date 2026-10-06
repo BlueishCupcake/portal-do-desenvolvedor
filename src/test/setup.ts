@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+
 import { afterEach } from 'vitest';
 
 import { LEAD_MODE_STORAGE_KEY } from '@/app/providers/leadModeContext.ts';

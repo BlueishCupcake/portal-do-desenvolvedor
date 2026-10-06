@@ -2,8 +2,8 @@ import { Button, Links, Spinner, Text, TitleV2 } from '@poliedro/tamentai/web';
 
 import { EmptyState } from '@/components/EmptyState/EmptyState.tsx';
 import { ErrorState } from '@/components/ErrorState/ErrorState.tsx';
-import { PipelineStatus } from '@/components/Pipelines/PipelineStatus.tsx';
 import styles from '@/components/Pipelines/PipelinesBoard.module.css';
+import { PipelineStatus } from '@/components/Pipelines/PipelineStatus.tsx';
 import type { PipelineRun } from '@/types/pipeline.ts';
 
 interface PipelinesBoardProps {

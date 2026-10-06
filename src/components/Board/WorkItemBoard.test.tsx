@@ -21,8 +21,12 @@ describe('WorkItemBoard', () => {
     expect(screen.getByText('Task B')).toBeInTheDocument();
     expect(screen.getByLabelText('Bug')).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Points' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Release PR' })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Deployed' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('columnheader', { name: 'Release PR' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('columnheader', { name: 'Deployed' }),
+    ).toBeInTheDocument();
     expect(screen.getAllByLabelText('Deployed: No').length).toBe(2);
     expect(screen.getAllByLabelText('Release PR: not created').length).toBe(2);
   });
@@ -30,20 +34,24 @@ describe('WorkItemBoard', () => {
   it('shows assignees in lead mode', () => {
     render(
       <WorkItemBoard
-        workItems={[createWorkItem({ id: 1, title: 'Task A', assignedTo: 'Alex Santos' })]}
+        workItems={[
+          createWorkItem({ id: 1, title: 'Task A', assignedTo: 'Alex Santos' }),
+        ]}
         leadMode
         onSelect={vi.fn()}
       />,
     );
 
-    expect(screen.getByRole('columnheader', { name: 'Responsável' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('columnheader', { name: 'Responsável' }),
+    ).toBeInTheDocument();
     expect(screen.getByText('Alex Santos')).toBeInTheDocument();
     expect(
-      screen.getByLabelText(
-        'Selecione uma tarefa para marcar todas do mesmo responsável',
-      ),
-    ).toBeDisabled();
-    expect(screen.queryByRole('button', { name: 'Request PR creation' })).not.toBeInTheDocument();
+      screen.getByLabelText('Selecionar todas as tarefas visíveis'),
+    ).toBeEnabled();
+    expect(
+      screen.queryByRole('button', { name: 'Request PR creation' }),
+    ).not.toBeInTheDocument();
   });
 
   it('requests a PR creation message for selected cards', async () => {
@@ -72,7 +80,12 @@ describe('WorkItemBoard', () => {
 
     await user.click(screen.getByLabelText('Selecionar Task A'));
 
-    expect(screen.getByRole('button', { name: 'Request PR creation' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Request PR creation' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Create deploy card' }),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Request PR creation' }));
 
@@ -83,11 +96,16 @@ describe('WorkItemBoard', () => {
     );
     expect(screen.getByText('Responsável: Alex Santos')).toBeInTheDocument();
     expect(screen.queryByText('Responsável: Sophie Quines')).not.toBeInTheDocument();
-    expect(screen.getByLabelText('Selecionar Task B')).toBeDisabled();
+    expect(screen.getByLabelText('Selecionar Task B')).toBeEnabled();
   });
 
-  it('allows selecting only tasks from the same developer', async () => {
+  it('creates a deploy card from tasks assigned to different developers', async () => {
     const user = userEvent.setup();
+    const onCreateDeployCard = vi.fn().mockResolvedValue({
+      id: 120000,
+      title: 'Deploy Sprint 42',
+      url: 'https://dev.azure.com/item/120000',
+    });
 
     render(
       <WorkItemBoard
@@ -102,6 +120,14 @@ describe('WorkItemBoard', () => {
             id: 2,
             title: 'Task B',
             assignedTo: 'Sophie Quines',
+            pullRequests: [
+              {
+                id: 99,
+                repositoryName: 'api',
+                projectName: 'portal',
+                targetBranch: 'refs/heads/main',
+              },
+            ],
           }),
           createWorkItem({
             id: 3,
@@ -110,20 +136,35 @@ describe('WorkItemBoard', () => {
           }),
         ]}
         onSelect={vi.fn()}
+        onCreateDeployCard={onCreateDeployCard}
       />,
     );
 
     await user.click(screen.getByLabelText('Selecionar Task A'));
+    await user.click(screen.getByLabelText('Selecionar Task B'));
 
-    expect(screen.getByLabelText('Selecionar Task A')).toBeChecked();
-    expect(screen.getByLabelText('Selecionar Task B')).toBeDisabled();
-    expect(screen.getByLabelText('Selecionar Task C')).toBeEnabled();
+    expect(
+      screen.queryByRole('button', { name: 'Request PR creation' }),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Create deploy card' }));
+    await user.type(
+      screen.getByRole('textbox', { name: 'Título' }),
+      'Deploy Sprint 42',
+    );
+    expect(screen.getByText(/api \/ portal/)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Criar cartão' }));
 
-    await user.click(screen.getByLabelText('Selecionar todas as tarefas de Alex Santos'));
-
-    expect(screen.getByLabelText('Selecionar Task A')).toBeChecked();
-    expect(screen.getByLabelText('Selecionar Task C')).toBeChecked();
-    expect(screen.getByLabelText('Selecionar Task B')).not.toBeChecked();
+    expect(onCreateDeployCard).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Deploy Sprint 42',
+        workItemIds: [1, 2],
+      }),
+    );
+    expect(
+      await screen.findByRole('link', {
+        name: 'Abrir #120000 — Deploy Sprint 42',
+      }),
+    ).toHaveAttribute('href', 'https://dev.azure.com/item/120000');
   });
 
   it('shows bugs fixed when related bugs are resolved', () => {

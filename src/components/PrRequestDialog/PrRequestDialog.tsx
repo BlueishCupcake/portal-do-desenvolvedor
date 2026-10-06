@@ -1,6 +1,5 @@
-import { useState } from 'react';
-
 import { Button, Dialog, Links, Text } from '@poliedro/tamentai/web';
+import { useState } from 'react';
 
 import styles from '@/components/PrRequestDialog/PrRequestDialog.module.css';
 import type { WorkItem } from '@/types/workItem.ts';

@@ -14,7 +14,14 @@ import {
 import { parsePipelineRunList } from '@/services/azureDevOps/pipelineParsers.ts';
 import type { AzureDevOpsService } from '@/services/azureDevOps/types.ts';
 import { AzureDevOpsError } from '@/services/azureDevOps/types.ts';
-import { isJsonObject, type JsonValue } from '@/utils/json.ts';
+import type { CreateDeployCardInput, DeployCard } from '@/types/deployCard.ts';
+import {
+  isJsonObject,
+  type JsonValue,
+  readNumberField,
+  readObjectField,
+  readStringField,
+} from '@/utils/json.ts';
 
 export const AZURE_DEVOPS_API_BASE = '/api/azure-devops';
 
@@ -31,6 +38,45 @@ async function readApi(path: string): Promise<JsonValue> {
   }
 
   return payload;
+}
+
+async function writeApi(
+  path: string,
+  input: CreateDeployCardInput,
+): Promise<JsonValue> {
+  const response = await fetch(`${AZURE_DEVOPS_API_BASE}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  const payload: JsonValue = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    const message =
+      isJsonObject(payload) && typeof payload.message === 'string'
+        ? payload.message
+        : 'Não foi possível criar o cartão de deploy.';
+    throw new AzureDevOpsError(message);
+  }
+
+  return payload;
+}
+
+function parseDeployCard(payload: JsonValue): DeployCard {
+  if (!isJsonObject(payload)) {
+    throw new AzureDevOpsError('Cartão de deploy inválido.');
+  }
+
+  const id = readNumberField(payload, 'id');
+  const fields = readObjectField(payload, 'fields');
+  const title = fields ? readStringField(fields, 'System.Title') : undefined;
+  const url = readStringField(payload, 'url');
+
+  if (id === undefined || !title || !url) {
+    throw new AzureDevOpsError('Cartão de deploy criado sem id, título ou URL.');
+  }
+
+  return { id, title, url };
 }
 
 export function createRestAzureDevOpsService(): AzureDevOpsService {
@@ -72,6 +118,10 @@ export function createRestAzureDevOpsService(): AzureDevOpsService {
         workItem.fields['System.IterationPath'];
 
       return mapAzureWorkItemDetails(workItem, sprintName);
+    },
+
+    async createDeployCard(input) {
+      return parseDeployCard(await writeApi('/deploy-cards', input));
     },
   };
 }

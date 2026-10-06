@@ -38,6 +38,16 @@ describe('createMockAzureDevOpsService', () => {
       id: 12345,
       sprintName: 'Sprint 42',
     });
+    await expect(
+      service.createDeployCard({
+        title: 'Deploy Sprint 42',
+        description: 'Descrição',
+        workItemIds: [12345],
+      }),
+    ).resolves.toMatchObject({
+      id: 99999,
+      title: 'Deploy Sprint 42',
+    });
   });
 
   it('supports delay, failures, empty filters and custom details', async () => {
@@ -54,12 +64,20 @@ describe('createMockAzureDevOpsService', () => {
       failCurrentSprint: true,
       failWorkItems: true,
       failWorkItemDetails: true,
+      failCreateDeployCard: true,
     });
 
     await expect(failing.getCurrentUser()).rejects.toThrow('usuário atual');
     await expect(failing.getCurrentSprint()).rejects.toThrow('Sprint atual');
     await expect(failing.getUserWorkItems('s', 'u')).rejects.toThrow('work items');
     await expect(failing.getWorkItemDetails(1)).rejects.toThrow('detalhes');
+    await expect(
+      failing.createDeployCard({
+        title: 'Deploy',
+        description: 'Descrição',
+        workItemIds: [1],
+      }),
+    ).rejects.toThrow('cartão de deploy');
 
     const custom = createMockAzureDevOpsService({
       delayMs: 0,

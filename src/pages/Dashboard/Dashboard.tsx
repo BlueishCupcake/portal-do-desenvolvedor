@@ -13,6 +13,7 @@ import { WorkItemFilters } from '@/components/WorkItem/WorkItemFilters.tsx';
 import { WorkItemSearch } from '@/components/WorkItem/WorkItemSearch.tsx';
 import { WorkItemSort } from '@/components/WorkItem/WorkItemSort.tsx';
 import { WorkItemDetails } from '@/components/WorkItemDetails/WorkItemDetails.tsx';
+import { useCreateDeployCard } from '@/hooks/useCreateDeployCard.ts';
 import { useCurrentSprint } from '@/hooks/useCurrentSprint.ts';
 import { useCurrentUser } from '@/hooks/useCurrentUser.ts';
 import { useDashboardFilters } from '@/hooks/useDashboardFilters.ts';
@@ -40,9 +41,8 @@ export function Dashboard() {
   const { leadMode } = useLeadMode();
   const { view } = useWorkspaceView();
   const pipelinesQuery = usePipelines();
-  const pipelineNotifications = usePipelineNotifications(
-    pipelinesQuery.data ?? [],
-  );
+  const createDeployCard = useCreateDeployCard();
+  const pipelineNotifications = usePipelineNotifications(pipelinesQuery.data ?? []);
   const userQuery = useCurrentUser();
   const sprintQuery = useCurrentSprint();
   const sprintsQuery = useSprints();
@@ -125,7 +125,10 @@ export function Dashboard() {
             {!isLoading && !errorMessage ? (
               <>
                 <section className={styles.toolbar} aria-label="Filtros da Sprint">
-                  <WorkItemSearch value={filters.search} onChange={filters.setSearch} />
+                  <WorkItemSearch
+                    value={filters.search}
+                    onChange={filters.setSearch}
+                  />
                   <WorkItemFilters
                     type={filters.type}
                     state={filters.state}
@@ -166,6 +169,7 @@ export function Dashboard() {
                     catalog={workItems}
                     leadMode={leadMode}
                     onSelect={setSelectedId}
+                    onCreateDeployCard={createDeployCard.mutateAsync}
                   />
                 ) : null}
               </>

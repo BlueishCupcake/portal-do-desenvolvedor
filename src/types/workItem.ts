@@ -3,6 +3,15 @@ export type WorkItemType =
 
 export type BugStatus = 'none' | 'open' | 'fixed';
 
+export interface WorkItemPullRequest {
+  id: number;
+  repositoryName: string;
+  projectName: string;
+  targetBranch: string;
+  status?: string;
+  url?: string;
+}
+
 export interface WorkItem {
   id: number;
   title: string;
@@ -23,6 +32,7 @@ export interface WorkItem {
   deployed?: boolean;
   releasePrCreated?: boolean;
   storyPoints?: number;
+  pullRequests?: WorkItemPullRequest[];
 }
 
 export interface WorkItemDetails extends WorkItem {

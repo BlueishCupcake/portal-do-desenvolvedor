@@ -6,13 +6,13 @@ import {
   mockWorkItems,
   toWorkItemDetails,
 } from '@/services/azureDevOps/mock/mockData.ts';
-import { findSprint } from '@/utils/sprint.ts';
 import type { AzureDevOpsService } from '@/services/azureDevOps/types.ts';
 import { AzureDevOpsError } from '@/services/azureDevOps/types.ts';
 import type { Developer } from '@/types/developer.ts';
 import type { PipelineRun } from '@/types/pipeline.ts';
 import type { Sprint } from '@/types/sprint.ts';
 import type { WorkItem, WorkItemDetails } from '@/types/workItem.ts';
+import { findSprint } from '@/utils/sprint.ts';
 
 export interface MockAzureDevOpsOptions {
   delayMs?: number;
@@ -28,6 +28,7 @@ export interface MockAzureDevOpsOptions {
   failCurrentSprint?: boolean;
   failWorkItems?: boolean;
   failWorkItemDetails?: boolean;
+  failCreateDeployCard?: boolean;
 }
 
 function wait(delayMs: number): Promise<void> {
@@ -100,7 +101,10 @@ export function createMockAzureDevOpsService(
         );
       }
 
-      if (sprintId.length === 0 || (!queryOptions?.leadMode && userId.length === 0)) {
+      if (
+        sprintId.length === 0 ||
+        (!queryOptions?.leadMode && userId.length === 0)
+      ) {
         return [];
       }
 
@@ -156,6 +160,20 @@ export function createMockAzureDevOpsService(
       }
 
       return toWorkItemDetails(workItem, currentSprint.name);
+    },
+
+    async createDeployCard(input) {
+      await wait(delayMs);
+
+      if (options.failCreateDeployCard) {
+        throw new AzureDevOpsError('Não foi possível criar o cartão de deploy.');
+      }
+
+      return {
+        id: 99999,
+        title: input.title,
+        url: 'https://dev.azure.com/mock/project/_workitems/edit/99999',
+      };
     },
   };
 }

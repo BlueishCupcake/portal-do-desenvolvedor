@@ -21,6 +21,7 @@ describe('azure devops server config', () => {
       project: 'portal',
       team: 'devs',
       pat: 'secret',
+      deployWorkItemType: 'Task',
       pipelineProject: 'pipelines',
       pipelineDefinitionIds: ['690', '1132'],
     });

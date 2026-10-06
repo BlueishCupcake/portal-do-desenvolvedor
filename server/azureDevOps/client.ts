@@ -5,6 +5,7 @@ const API_VERSION = '7.1';
 export interface AzureDevOpsRequestOptions {
   method?: 'GET' | 'POST';
   body?: string;
+  contentType?: string;
 }
 
 export function createAzureAuthHeader(pat: string): string {
@@ -33,7 +34,7 @@ export async function azureDevOpsRequest(
     headers: {
       Accept: 'application/json',
       Authorization: createAzureAuthHeader(config.pat),
-      'Content-Type': 'application/json',
+      'Content-Type': options.contentType ?? 'application/json',
     },
     body: options.body,
   });
@@ -63,10 +64,7 @@ export function readAzureErrorMessage(payload: unknown, status: number): string 
   return `O Azure DevOps retornou o status ${String(status)}.`;
 }
 
-export function withApiVersion(
-  path: string,
-  apiVersion = API_VERSION,
-): string {
+export function withApiVersion(path: string, apiVersion = API_VERSION): string {
   return path.includes('?')
     ? `${path}&api-version=${apiVersion}`
     : `${path}?api-version=${apiVersion}`;

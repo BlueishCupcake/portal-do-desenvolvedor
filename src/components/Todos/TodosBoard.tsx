@@ -1,6 +1,5 @@
-import type { CSSProperties } from 'react';
-
 import { Button, ButtonIcon, TitleV2 } from '@poliedro/tamentai/web';
+import type { CSSProperties } from 'react';
 
 import { EmptyState } from '@/components/EmptyState/EmptyState.tsx';
 import styles from '@/components/Todos/TodosBoard.module.css';
@@ -13,7 +12,7 @@ export function TodosBoard() {
   return (
     <section className={styles.board} aria-label="To Do's">
       <div className={styles.toolbar}>
-        <TitleV2 variant="h2">To Do's</TitleV2>
+        <TitleV2 variant="h2">To Do&apos;s</TitleV2>
         <Button type="button" color="primary" onClick={addTodo}>
           Novo post-it
         </Button>

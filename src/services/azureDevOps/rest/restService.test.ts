@@ -24,7 +24,7 @@ describe('createRestAzureDevOpsService', () => {
   });
 
   it('maps proxied Azure DevOps responses', async () => {
-    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
 
       if (url.endsWith('/me')) {
@@ -93,6 +93,22 @@ describe('createRestAzureDevOpsService', () => {
         };
       }
 
+      if (url.endsWith('/deploy-cards')) {
+        expect(init?.method).toBe('POST');
+        expect(JSON.parse(String(init?.body))).toMatchObject({
+          title: 'Deploy Sprint 42',
+          workItemIds: [88],
+        });
+        return {
+          ok: true,
+          json: async () => ({
+            id: 120000,
+            url: 'https://dev.azure.com/contoso/portal/_workitems/edit/120000',
+            fields: { 'System.Title': 'Deploy Sprint 42' },
+          }),
+        };
+      }
+
       return {
         ok: true,
         json: async () => azureItem,
@@ -119,6 +135,16 @@ describe('createRestAzureDevOpsService', () => {
     ).resolves.toMatchObject([{ id: 88, title: 'Tarefa REST' }]);
     await expect(service.getWorkItemDetails(88)).resolves.toMatchObject({
       sprintName: 'Sprint 42',
+    });
+    await expect(
+      service.createDeployCard({
+        title: 'Deploy Sprint 42',
+        description: 'Aplicações afetadas:',
+        workItemIds: [88],
+      }),
+    ).resolves.toMatchObject({
+      id: 120000,
+      title: 'Deploy Sprint 42',
     });
   });
 

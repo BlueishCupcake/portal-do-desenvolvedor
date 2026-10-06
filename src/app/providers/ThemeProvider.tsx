@@ -1,9 +1,9 @@
 import { type ReactNode, useCallback, useLayoutEffect, useMemo, useState } from 'react';
 
 import {
+  type Theme,
   THEME_STORAGE_KEY,
   ThemeContext,
-  type Theme,
 } from '@/app/providers/themeContext.ts';
 
 interface ThemeProviderProps {
