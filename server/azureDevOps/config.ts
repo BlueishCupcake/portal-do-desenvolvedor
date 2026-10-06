@@ -3,6 +3,8 @@ export interface AzureDevOpsServerConfig {
   project: string;
   team: string;
   pat: string;
+  pipelineProject: string;
+  pipelineDefinitionIds: string[];
 }
 
 function readValue(
@@ -30,12 +32,21 @@ export function readAzureDevOpsServerConfig(
     'AZURE_DEVOPS_PROJECT',
     'VITE_AZURE_DEVOPS_PROJECT',
   ]);
+  const pipelineDefinitions = readValue(env, [
+    'AZURE_DEVOPS_PIPELINE_DEFINITION_IDS',
+  ]);
 
   return {
     organization,
     project,
     team: readValue(env, ['AZURE_DEVOPS_TEAM', 'VITE_AZURE_DEVOPS_TEAM']),
     pat: readValue(env, ['AZURE_DEVOPS_PAT']),
+    pipelineProject:
+      readValue(env, ['AZURE_DEVOPS_PIPELINE_PROJECT']) || project,
+    pipelineDefinitionIds: pipelineDefinitions
+      .split(',')
+      .map((value) => value.trim())
+      .filter((value) => /^\d+$/.test(value)),
   };
 }
 

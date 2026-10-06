@@ -1,8 +1,19 @@
-import { Avatar, Button, ButtonIcon, Text, TitleV2 } from '@poliedro/tamentai/web';
+import {
+  Avatar,
+  Badge,
+  Button,
+  ButtonIcon,
+  Tabs,
+  Text,
+  TitleV2,
+} from '@poliedro/tamentai/web';
 
+import type { WorkspaceView } from '@/app/providers/workspaceViewContext.ts';
 import styles from '@/components/Header/Header.module.css';
 import { useLeadMode } from '@/hooks/useLeadMode.ts';
 import { useTheme } from '@/hooks/useTheme.ts';
+import { useTodoCount } from '@/hooks/useTodoCount.ts';
+import { useWorkspaceView } from '@/hooks/useWorkspaceView.ts';
 import type { Developer } from '@/types/developer.ts';
 
 interface HeaderProps {
@@ -29,6 +40,8 @@ function toInitials(name?: string): string {
 export function Header({ user }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const { leadMode, toggleLeadMode } = useLeadMode();
+  const { view, setView } = useWorkspaceView();
+  const todoCount = useTodoCount();
   const isDark = theme === 'dark';
 
   return (
@@ -40,6 +53,49 @@ export function Header({ user }: HeaderProps) {
         <TitleV2 variant="h1">Portal do Desenvolvedor</TitleV2>
       </div>
       <div className={styles.actions}>
+        <Tabs
+          className={styles.tabs}
+          aria-label="Área do portal"
+          variant="segment"
+          size="sm"
+          tabs={[
+            { value: 'tasks', label: 'Tasks', active: view === 'tasks' },
+            {
+              value: 'todos',
+              label: (
+                <span className={styles.tabLabel}>
+                  To Do&apos;s
+                  <Badge
+                    className={styles.todoCount}
+                    variant="solid"
+                    color="red"
+                    size="sm"
+                    shape="pilled"
+                    aria-hidden="true"
+                    title={`${String(todoCount)} post-it${todoCount === 1 ? '' : 's'}`}
+                  >
+                    {todoCount}
+                  </Badge>
+                </span>
+              ),
+              active: view === 'todos',
+            },
+            {
+              value: 'pipelines',
+              label: 'Pipelines',
+              active: view === 'pipelines',
+            },
+          ]}
+          onChange={(value) => {
+            if (
+              value === 'tasks' ||
+              value === 'todos' ||
+              value === 'pipelines'
+            ) {
+              setView(value satisfies WorkspaceView);
+            }
+          }}
+        />
         <Button
           type="button"
           variant={leadMode ? 'solid' : 'outline'}

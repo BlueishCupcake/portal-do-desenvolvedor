@@ -22,12 +22,14 @@ describe('azure devops parsers', () => {
             'System.State': 'Active',
             'System.AssignedTo': 'Sophie',
             'System.IterationPath': 'Sprint 42',
+            'Microsoft.VSTS.Scheduling.StoryPoints': 5,
           },
         },
       ],
     });
 
     expect(items[0]?.id).toBe(1);
+    expect(items[0]?.fields['Microsoft.VSTS.Scheduling.StoryPoints']).toBe(5);
   });
 
   it('parses work item relations', () => {

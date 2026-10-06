@@ -16,6 +16,7 @@ describe('Dashboard', () => {
       'Portal do Desenvolvedor\\Sprint 42',
     );
     expect(await screen.findByText('Corrigir autenticação')).toBeInTheDocument();
+    expect(screen.getByLabelText('Pontos do usuário na sprint: 28')).toBeInTheDocument();
     expect(screen.getAllByLabelText(/bug/i).length).toBeGreaterThan(0);
   });
 
@@ -158,6 +159,7 @@ describe('Dashboard', () => {
     );
 
     expect(await screen.findByText('Tarefa da sprint anterior')).toBeInTheDocument();
+    expect(screen.getByLabelText('Pontos do usuário na sprint: 3')).toBeInTheDocument();
     expect(screen.queryByText('Corrigir autenticação')).not.toBeInTheDocument();
   });
 
@@ -175,6 +177,7 @@ describe('Dashboard', () => {
     expect(screen.getByRole('columnheader', { name: 'Responsável' })).toBeInTheDocument();
     expect(screen.getAllByText('Sophie Quines').length).toBeGreaterThan(1);
     expect(screen.getByText('Alex Santos')).toBeInTheDocument();
+    expect(screen.getByLabelText('Pontos do usuário na sprint: 28')).toBeInTheDocument();
 
     await user.click(screen.getByLabelText('Selecionar Revisar contrato da API'));
     await user.click(screen.getByRole('button', { name: 'Request PR creation' }));
@@ -183,6 +186,43 @@ describe('Dashboard', () => {
     expect(
       screen.getByRole('link', { name: /Revisar contrato da API/ }),
     ).toBeInTheDocument();
+  });
+
+  it('opens the To Do\'s board from the header tabs', async () => {
+    const user = userEvent.setup();
+
+    renderWithProviders(<App />);
+
+    expect(await screen.findByText('Corrigir autenticação')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: "To Do's" }));
+
+    expect(screen.queryByText('Corrigir autenticação')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: "To Do's" })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Novo post-it' })).toBeInTheDocument();
+    expect(screen.getByTitle('0 post-its')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Novo post-it' }));
+
+    expect(await screen.findByTitle('1 post-it')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Tasks' }));
+
+    expect(await screen.findByText('Corrigir autenticação')).toBeInTheDocument();
+  });
+
+  it('opens pipelines requested for the current user', async () => {
+    const user = userEvent.setup();
+
+    renderWithProviders(<App />);
+
+    await user.click(screen.getByRole('tab', { name: 'Pipelines' }));
+
+    expect(
+      await screen.findByRole('heading', { name: 'Pipelines' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'portal-ci' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Pipeline: Em execução')).toBeInTheDocument();
   });
 
   it('renders work items without optional information', async () => {

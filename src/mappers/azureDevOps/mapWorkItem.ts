@@ -1,4 +1,4 @@
-import { mapAssignedTo } from '@/mappers/azureDevOps/mapAssignedTo.ts';
+import { mapAssignee } from '@/mappers/azureDevOps/mapAssignedTo.ts';
 import { mapWorkItemType } from '@/mappers/azureDevOps/mapWorkItemType.ts';
 import type { AzureWorkItem } from '@/services/azureDevOps/types.ts';
 import type { WorkItem, WorkItemDetails } from '@/types/workItem.ts';
@@ -11,15 +11,25 @@ function readRelatedIds(workItem: AzureWorkItem): number[] {
   });
 }
 
+function readStoryPoints(workItem: AzureWorkItem): number | undefined {
+  return (
+    workItem.fields['Microsoft.VSTS.Scheduling.StoryPoints'] ??
+    workItem.fields['Microsoft.VSTS.Scheduling.Effort']
+  );
+}
+
 export function mapAzureWorkItem(workItem: AzureWorkItem): WorkItem {
   const description = workItem.fields['System.Description'];
+  const assignee = mapAssignee(workItem.fields['System.AssignedTo']);
 
   return {
     id: workItem.id,
     title: workItem.fields['System.Title'],
     type: mapWorkItemType(workItem.fields['System.WorkItemType']),
     state: workItem.fields['System.State'],
-    assignedTo: mapAssignedTo(workItem.fields['System.AssignedTo']),
+    assignedTo: assignee.assignedTo,
+    assignedToId: assignee.assignedToId,
+    assignedToUniqueName: assignee.assignedToUniqueName,
     boardColumn:
       workItem.fields['System.BoardColumn'] ?? workItem.fields['System.State'],
     iterationPath: workItem.fields['System.IterationPath'],
@@ -31,6 +41,7 @@ export function mapAzureWorkItem(workItem: AzureWorkItem): WorkItem {
     relatedIds: readRelatedIds(workItem),
     deployed: workItem.deployed === true,
     releasePrCreated: workItem.releasePrCreated === true,
+    storyPoints: readStoryPoints(workItem),
   };
 }
 

@@ -95,6 +95,41 @@ function toIdentity(payload: unknown): JsonRecord {
   };
 }
 
+async function getAuthenticatedIdentity(
+  config: AzureDevOpsServerConfig,
+): Promise<JsonRecord> {
+  const connectionPayload = await azureDevOpsRequest(
+    config,
+    withApiVersion('/_apis/connectionData', '7.1-preview'),
+  );
+  const identity = toIdentity(connectionPayload);
+
+  try {
+    const profile = await azureDevOpsRequest(
+      config,
+      `https://vssps.dev.azure.com/${encodeSegment(config.organization)}/_apis/profile/profiles/me?api-version=7.1`,
+    );
+
+    if (!isRecord(profile)) {
+      return identity;
+    }
+
+    const email =
+      readString(profile.emailAddress) ??
+      readString(identity.mailAddress) ??
+      readString(identity.uniqueName);
+
+    return {
+      ...identity,
+      displayName: readString(profile.displayName) ?? identity.displayName,
+      uniqueName: email,
+      mailAddress: email,
+    };
+  } catch {
+    return identity;
+  }
+}
+
 function workItemWebUrl(
   config: AzureDevOpsServerConfig,
   item: JsonRecord,
@@ -302,11 +337,7 @@ export async function handleAzureDevOpsApi(
     const teamSegment = `/${encodeSegment(config.project)}/${encodeSegment(team)}`;
 
     if (pathname === '/api/azure-devops/me') {
-      const payload = await azureDevOpsRequest(
-        config,
-        withApiVersion('/_apis/connectionData', '7.1-preview'),
-      );
-      return { status: 200, body: toIdentity(payload) };
+      return { status: 200, body: await getAuthenticatedIdentity(config) };
     }
 
     if (pathname === '/api/azure-devops/sprint/current') {
@@ -332,6 +363,45 @@ export async function handleAzureDevOpsApi(
 
       if (!isRecord(payload) || !Array.isArray(payload.value)) {
         throw new Error('Não foi possível carregar as Sprints.');
+      }
+
+      return { status: 200, body: payload };
+    }
+
+    if (pathname === '/api/azure-devops/pipelines') {
+      const identityPayload = await azureDevOpsRequest(
+        config,
+        withApiVersion('/_apis/connectionData', '7.1-preview'),
+      );
+      const identity = toIdentity(identityPayload);
+      const requestedFor =
+        readString(identity.id) ??
+        readString(identity.uniqueName) ??
+        readString(identity.mailAddress) ??
+        readString(identity.displayName);
+
+      if (!requestedFor) {
+        throw new Error('Não foi possível identificar o usuário das pipelines.');
+      }
+
+      const query = new URLSearchParams({
+        requestedFor,
+        statusFilter: 'all',
+        queryOrder: 'queueTimeDescending',
+        $top: '50',
+      });
+      if (config.pipelineDefinitionIds.length > 0) {
+        query.set('definitions', config.pipelineDefinitionIds.join(','));
+      }
+      const payload = await azureDevOpsRequest(
+        config,
+        withApiVersion(
+          `/${encodeSegment(config.pipelineProject)}/_apis/build/builds?${query.toString()}`,
+        ),
+      );
+
+      if (!isRecord(payload) || !Array.isArray(payload.value)) {
+        throw new Error('Lista de pipelines inválida.');
       }
 
       return { status: 200, body: payload };

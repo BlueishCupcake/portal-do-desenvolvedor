@@ -17,11 +17,16 @@ const azureWorkItem: AzureWorkItem = {
     'System.Title': 'Item Azure',
     'System.WorkItemType': 'User Story',
     'System.State': 'Active',
-    'System.AssignedTo': { displayName: 'Sophie Quines' },
+    'System.AssignedTo': {
+      displayName: 'Sophie Quines Mendonca',
+      id: 'aad-1',
+      uniqueName: 'sophie.mendonca@example.com',
+    },
     'System.BoardColumn': 'Ag. QA',
     'System.IterationPath': 'Portal\\Sprint 42',
     'System.Description': '<p>Descrição</p>',
     'Microsoft.VSTS.Common.Priority': 2,
+    'Microsoft.VSTS.Scheduling.StoryPoints': 5,
     'System.CreatedDate': '2026-10-01',
     'System.ChangedDate': '2026-10-04',
   },
@@ -45,13 +50,27 @@ describe('azure devops mappers', () => {
       id: 88,
       title: 'Item Azure',
       type: 'User Story',
-      assignedTo: 'Sophie Quines',
+      assignedTo: 'Sophie Quines Mendonca',
+      assignedToId: 'aad-1',
+      assignedToUniqueName: 'sophie.mendonca@example.com',
       boardColumn: 'Ag. QA',
       description: 'Descrição',
       relatedIds: [],
       deployed: false,
       releasePrCreated: false,
+      storyPoints: 5,
     });
+
+    expect(
+      mapAzureWorkItem({
+        ...azureWorkItem,
+        fields: {
+          ...azureWorkItem.fields,
+          'Microsoft.VSTS.Scheduling.StoryPoints': undefined,
+          'Microsoft.VSTS.Scheduling.Effort': 3,
+        },
+      }).storyPoints,
+    ).toBe(3);
 
     expect(
       mapAzureWorkItem({

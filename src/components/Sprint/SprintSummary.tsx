@@ -8,12 +8,14 @@ import { sprintValue } from '@/utils/sprint.ts';
 interface SprintSummaryProps {
   sprint?: Sprint;
   sprints?: Sprint[];
+  userPoints?: number;
   onSprintChange?: (sprintId: string) => void;
 }
 
 export function SprintSummary({
   sprint,
   sprints = [],
+  userPoints,
   onSprintChange,
 }: SprintSummaryProps) {
   if (!sprint) {
@@ -30,30 +32,42 @@ export function SprintSummary({
     <section className={styles.section} aria-label="Sprint atual">
       <Card>
         <div className={styles.content}>
-          {sprints.length > 0 && onSprintChange ? (
-            <div className={styles.selector}>
-              <Select
-                label="Sprint"
-                value={sprintValue(sprint)}
-                options={sprints.map((item) => ({
-                  value: sprintValue(item),
-                  label: item.name,
-                }))}
-                onValueChange={(value) => {
-                  if (typeof value === 'string' && value.length > 0) {
-                    onSprintChange(value);
-                  }
-                }}
-              />
-            </div>
-          ) : (
-            <>
-              <Text variant="overline" color="muted">
-                Sprint atual
-              </Text>
-              <TitleV2 variant="h2">{sprint.name}</TitleV2>
-            </>
-          )}
+          <div className={styles.row}>
+            {sprints.length > 0 && onSprintChange ? (
+              <div className={styles.selector}>
+                <Select
+                  label="Sprint"
+                  value={sprintValue(sprint)}
+                  options={sprints.map((item) => ({
+                    value: sprintValue(item),
+                    label: item.name,
+                  }))}
+                  onValueChange={(value) => {
+                    if (typeof value === 'string' && value.length > 0) {
+                      onSprintChange(value);
+                    }
+                  }}
+                />
+              </div>
+            ) : (
+              <div>
+                <Text variant="overline" color="muted">
+                  Sprint atual
+                </Text>
+                <TitleV2 variant="h2">{sprint.name}</TitleV2>
+              </div>
+            )}
+            {userPoints !== undefined ? (
+              <p
+                className={styles.points}
+                aria-label={`Pontos do usuário na sprint: ${String(userPoints)}`}
+              >
+                <Text as="span" color="muted">
+                  Pontos produzidos: {userPoints}
+                </Text>
+              </p>
+            ) : null}
+          </div>
           <p className={styles.period}>
             <span className={styles.full}>
               <Text as="span" color="muted">

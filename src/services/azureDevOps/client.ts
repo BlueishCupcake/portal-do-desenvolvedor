@@ -12,6 +12,7 @@ import { readEnv } from '@/utils/env.ts';
 
 export const DEFAULT_MCP_TOOLS: AzureDevOpsMcpToolMap = {
   getCurrentUser: 'get_current_user',
+  getUserPipelines: 'get_user_pipelines',
   getCurrentSprint: 'get_current_sprint',
   getSprints: 'get_sprints',
   getUserWorkItems: 'get_user_work_items',
@@ -52,6 +53,10 @@ export function createAzureDevOpsService(): AzureDevOpsService {
       getCurrentUser: readEnv(
         'VITE_AZURE_DEVOPS_MCP_TOOL_CURRENT_USER',
         DEFAULT_MCP_TOOLS.getCurrentUser,
+      ),
+      getUserPipelines: readEnv(
+        'VITE_AZURE_DEVOPS_MCP_TOOL_USER_PIPELINES',
+        DEFAULT_MCP_TOOLS.getUserPipelines,
       ),
       getCurrentSprint: readEnv(
         'VITE_AZURE_DEVOPS_MCP_TOOL_CURRENT_SPRINT',

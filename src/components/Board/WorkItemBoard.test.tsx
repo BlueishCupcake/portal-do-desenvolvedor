@@ -20,6 +20,7 @@ describe('WorkItemBoard', () => {
     expect(screen.getByText('Task A')).toBeInTheDocument();
     expect(screen.getByText('Task B')).toBeInTheDocument();
     expect(screen.getByLabelText('Bug')).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Points' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Release PR' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Deployed' })).toBeInTheDocument();
     expect(screen.getAllByLabelText('Deployed: No').length).toBe(2);

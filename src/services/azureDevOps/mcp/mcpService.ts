@@ -11,6 +11,7 @@ import {
   parseAzureWorkItem,
   parseAzureWorkItemList,
 } from '@/services/azureDevOps/parsers.ts';
+import { parsePipelineRunList } from '@/services/azureDevOps/pipelineParsers.ts';
 import type {
   AzureDevOpsContext,
   AzureDevOpsMcpToolMap,
@@ -61,6 +62,10 @@ export function createMcpAzureDevOpsService(
     async getCurrentUser() {
       const payload = await invokeTool(tools.getCurrentUser);
       return mapAzureDeveloper(parseAzureDeveloper(payload));
+    },
+
+    async getUserPipelines() {
+      return parsePipelineRunList(await invokeTool(tools.getUserPipelines));
     },
 
     async getCurrentSprint() {

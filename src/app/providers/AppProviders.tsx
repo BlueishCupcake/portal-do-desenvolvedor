@@ -4,6 +4,7 @@ import { type ReactNode, useState } from 'react';
 import { AzureDevOpsProvider } from '@/app/providers/AzureDevOpsProvider.tsx';
 import { LeadModeProvider } from '@/app/providers/LeadModeProvider.tsx';
 import { ThemeProvider } from '@/app/providers/ThemeProvider.tsx';
+import { WorkspaceViewProvider } from '@/app/providers/WorkspaceViewProvider.tsx';
 import type { AzureDevOpsService } from '@/services/azureDevOps/types.ts';
 
 interface AppProvidersProps {
@@ -30,7 +31,9 @@ export function AppProviders({ children, service, queryClient }: AppProvidersPro
     <QueryClientProvider client={client}>
       <ThemeProvider>
         <LeadModeProvider>
-          <AzureDevOpsProvider service={service}>{children}</AzureDevOpsProvider>
+          <WorkspaceViewProvider>
+            <AzureDevOpsProvider service={service}>{children}</AzureDevOpsProvider>
+          </WorkspaceViewProvider>
         </LeadModeProvider>
       </ThemeProvider>
     </QueryClientProvider>

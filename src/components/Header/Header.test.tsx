@@ -4,13 +4,16 @@ import { describe, expect, it } from 'vitest';
 
 import { LeadModeProvider } from '@/app/providers/LeadModeProvider.tsx';
 import { ThemeProvider } from '@/app/providers/ThemeProvider.tsx';
+import { WorkspaceViewProvider } from '@/app/providers/WorkspaceViewProvider.tsx';
 import { Header } from '@/components/Header/Header.tsx';
 
 function renderHeader(user?: { id: string; displayName: string }) {
   return render(
     <ThemeProvider>
       <LeadModeProvider>
-        <Header user={user} />
+        <WorkspaceViewProvider>
+          <Header user={user} />
+        </WorkspaceViewProvider>
       </LeadModeProvider>
     </ThemeProvider>,
   );
@@ -60,7 +63,15 @@ describe('Header', () => {
       displayName: 'Sophie Quines',
     });
 
+    const tasksTab = screen.getByRole('tab', { name: 'Tasks' });
+    const todosTab = screen.getByRole('tab', { name: "To Do's" });
+    const pipelinesTab = screen.getByRole('tab', { name: 'Pipelines' });
     const leadMode = screen.getByRole('button', { name: 'Ativar Lead Mode' });
+    expect(tasksTab.compareDocumentPosition(leadMode)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(todosTab.compareDocumentPosition(leadMode)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(pipelinesTab.compareDocumentPosition(leadMode)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
     expect(leadMode.compareDocumentPosition(screen.getByRole('button', { name: 'Ativar modo escuro' }))).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
@@ -69,6 +80,25 @@ describe('Header', () => {
 
     expect(screen.getByRole('button', { name: 'Desativar Lead Mode' })).toHaveAttribute(
       'aria-pressed',
+      'true',
+    );
+  });
+
+  it('switches between workspace tabs', async () => {
+    const user = userEvent.setup();
+    renderHeader();
+
+    expect(screen.getByRole('tab', { name: 'Tasks' })).toHaveAttribute('aria-selected', 'true');
+
+    await user.click(screen.getByRole('tab', { name: "To Do's" }));
+
+    expect(screen.getByRole('tab', { name: "To Do's" })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: 'Tasks' })).toHaveAttribute('aria-selected', 'false');
+
+    await user.click(screen.getByRole('tab', { name: 'Pipelines' }));
+
+    expect(screen.getByRole('tab', { name: 'Pipelines' })).toHaveAttribute(
+      'aria-selected',
       'true',
     );
   });

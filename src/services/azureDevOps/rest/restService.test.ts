@@ -62,6 +62,30 @@ describe('createRestAzureDevOpsService', () => {
         };
       }
 
+      if (url.endsWith('/pipelines')) {
+        return {
+          ok: true,
+          json: async () => ({
+            value: [
+              {
+                id: 501,
+                buildNumber: '20261006.4',
+                status: 'inProgress',
+                definition: { name: 'portal-ci' },
+                requestedFor: { displayName: 'Sophie' },
+                sourceBranch: 'refs/heads/main',
+                queueTime: '2026-10-06T14:00:00Z',
+                _links: {
+                  web: {
+                    href: 'https://dev.azure.com/contoso/portal/_build/results?buildId=501',
+                  },
+                },
+              },
+            ],
+          }),
+        };
+      }
+
       if (url.includes('/work-items?')) {
         return {
           ok: true,
@@ -86,6 +110,9 @@ describe('createRestAzureDevOpsService', () => {
     });
     await expect(service.getSprints()).resolves.toMatchObject([
       { name: 'Sprint 42' },
+    ]);
+    await expect(service.getUserPipelines()).resolves.toMatchObject([
+      { id: 501, name: 'portal-ci', status: 'inProgress' },
     ]);
     await expect(
       service.getUserWorkItems('Portal\\Sprint 42', 'u1'),

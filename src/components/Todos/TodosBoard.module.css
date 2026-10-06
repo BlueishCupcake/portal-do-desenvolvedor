@@ -1,0 +1,92 @@
+.board {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14.5rem, 1fr));
+  gap: 1.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.note {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 14.5rem;
+  padding: 0.7rem 0.85rem 1rem;
+  border: 0;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.45) inset,
+    0 10px 22px rgba(15, 23, 42, 0.14);
+  transform: rotate(calc(var(--tilt, 0) * 1deg));
+}
+
+.note[data-color='0'] {
+  background: #fde047;
+  color: #422006;
+}
+
+.note[data-color='1'] {
+  background: #f9a8d4;
+  color: #500724;
+}
+
+.note[data-color='2'] {
+  background: #7dd3fc;
+  color: #0c4a6e;
+}
+
+.note[data-color='3'] {
+  background: #86efac;
+  color: #14532d;
+}
+
+.header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.text {
+  flex: 1;
+  width: 100%;
+  min-height: 10rem;
+  resize: none;
+  border: 0;
+  padding: 0.15rem 0.2rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  line-height: 1.45;
+}
+
+.text::placeholder {
+  color: currentColor;
+  opacity: 0.55;
+}
+
+.text:focus {
+  outline: none;
+}
+
+.text:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

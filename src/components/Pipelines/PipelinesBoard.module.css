@@ -1,0 +1,82 @@
+.section {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+}
+
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.notifications {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.table {
+  width: 100%;
+  min-width: 52rem;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 0.85rem 1rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.table th {
+  color: var(--color-ink-soft);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.table tbody tr + tr {
+  border-top: 1px solid var(--color-line);
+}
+
+.pipeline {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.status {
+  width: 9.5rem;
+}
+
+.branch {
+  max-width: 18rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.time {
+  width: 11.5rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .notifications {
+    width: 100%;
+    align-items: flex-start;
+  }
+}

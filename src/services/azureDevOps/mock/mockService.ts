@@ -1,5 +1,6 @@
 import {
   mockDeveloper,
+  mockPipelines,
   mockSprint,
   mockSprints,
   mockWorkItems,
@@ -9,18 +10,21 @@ import { findSprint } from '@/utils/sprint.ts';
 import type { AzureDevOpsService } from '@/services/azureDevOps/types.ts';
 import { AzureDevOpsError } from '@/services/azureDevOps/types.ts';
 import type { Developer } from '@/types/developer.ts';
+import type { PipelineRun } from '@/types/pipeline.ts';
 import type { Sprint } from '@/types/sprint.ts';
 import type { WorkItem, WorkItemDetails } from '@/types/workItem.ts';
 
 export interface MockAzureDevOpsOptions {
   delayMs?: number;
   currentUser?: Developer;
+  pipelines?: PipelineRun[];
   currentSprint?: Sprint;
   sprints?: Sprint[];
   workItems?: WorkItem[];
   failSprints?: boolean;
   detailsById?: Record<number, WorkItemDetails>;
   failCurrentUser?: boolean;
+  failPipelines?: boolean;
   failCurrentSprint?: boolean;
   failWorkItems?: boolean;
   failWorkItemDetails?: boolean;
@@ -41,6 +45,7 @@ export function createMockAzureDevOpsService(
 ): AzureDevOpsService {
   const delayMs = options.delayMs ?? 400;
   const currentUser = options.currentUser ?? mockDeveloper;
+  const pipelines = options.pipelines ?? mockPipelines;
   const currentSprint = options.currentSprint ?? mockSprint;
   const sprints = options.sprints ?? mockSprints;
   const workItems = options.workItems ?? mockWorkItems;
@@ -54,6 +59,16 @@ export function createMockAzureDevOpsService(
       }
 
       return currentUser;
+    },
+
+    async getUserPipelines() {
+      await wait(delayMs);
+
+      if (options.failPipelines) {
+        throw new AzureDevOpsError('Não foi possível carregar as pipelines.');
+      }
+
+      return pipelines;
     },
 
     async getCurrentSprint() {

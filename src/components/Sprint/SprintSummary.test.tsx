@@ -31,6 +31,7 @@ describe('SprintSummary', () => {
       <SprintSummary
         sprint={mockSprint}
         sprints={mockSprints}
+        userPoints={13}
         onSprintChange={onSprintChange}
       />,
     );
@@ -41,5 +42,6 @@ describe('SprintSummary', () => {
     );
 
     expect(onSprintChange).toHaveBeenCalledWith(mockPreviousSprint.path);
+    expect(screen.getByText('Pontos produzidos: 13')).toBeInTheDocument();
   });
 });

@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { AzureDevOpsProvider } from '@/app/providers/AzureDevOpsProvider.tsx';
 import { useCurrentSprint } from '@/hooks/useCurrentSprint.ts';
 import { useCurrentUser } from '@/hooks/useCurrentUser.ts';
+import { usePipelines } from '@/hooks/usePipelines.ts';
 import { useSprints } from '@/hooks/useSprints.ts';
 import { useWorkItemDetails } from '@/hooks/useWorkItemDetails.ts';
 import { useWorkItems } from '@/hooks/useWorkItems.ts';
@@ -32,6 +33,7 @@ describe('azure devops hooks', () => {
 
     const user = renderHook(() => useCurrentUser(), { wrapper });
     const sprint = renderHook(() => useCurrentSprint(), { wrapper });
+    const pipelines = renderHook(() => usePipelines(), { wrapper });
     const sprints = renderHook(() => useSprints(), { wrapper });
     const items = renderHook(
       () => useWorkItems({ sprintId: 'sprint-42', userId: 'sophie-quines' }),
@@ -45,6 +47,7 @@ describe('azure devops hooks', () => {
       expect(user.result.current.data?.displayName).toBe('Sophie Quines');
       expect(sprint.result.current.data?.name).toBe('Sprint 42');
       expect(sprints.result.current.data?.length).toBeGreaterThan(1);
+      expect(pipelines.result.current.data?.length).toBeGreaterThan(0);
       expect(items.result.current.data?.length).toBeGreaterThan(0);
       expect(details.result.current.data?.id).toBe(12345);
     });

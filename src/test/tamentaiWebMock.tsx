@@ -144,6 +144,37 @@ export function Badge({
   return <span {...props}>{children}</span>;
 }
 
+export function Tabs({
+  tabs = [],
+  onChange,
+  className,
+  'aria-label': ariaLabel,
+}: {
+  tabs?: Array<{ value: string; label: ReactNode; active?: boolean }>;
+  onChange?: (value: string) => void;
+  className?: string;
+  'aria-label'?: string;
+}) {
+  return (
+    <div role="tablist" aria-label={ariaLabel} className={className}>
+      {tabs.map((tab) => (
+        <button
+          key={tab.value}
+          type="button"
+          role="tab"
+          data-selected={tab.active === true ? 'true' : undefined}
+          aria-selected={tab.active === true}
+          onClick={() => {
+            onChange?.(tab.value);
+          }}
+        >
+          {tab.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function Spinner({
   label = 'Loading...',
   showLabel = false,

@@ -27,6 +27,7 @@ function createTransport(impl: McpTransport['invoke']): McpTransport {
 
 const tools = {
   getCurrentUser: 'get_current_user',
+  getUserPipelines: 'get_user_pipelines',
   getCurrentSprint: 'get_current_sprint',
   getSprints: 'get_sprints',
   getUserWorkItems: 'get_user_work_items',
@@ -71,6 +72,21 @@ describe('createMcpAzureDevOpsService', () => {
         if (tool === 'get_user_work_items') {
           return { value: [azureItem] };
         }
+        if (tool === 'get_user_pipelines') {
+          return {
+            value: [
+              {
+                id: 501,
+                buildNumber: '20261006.4',
+                status: 'inProgress',
+                definition: { name: 'portal-ci' },
+                requestedFor: { displayName: 'Sophie' },
+                queueTime: '2026-10-06T14:00:00Z',
+                url: 'https://dev.azure.com/501',
+              },
+            ],
+          };
+        }
         return azureItem;
       }),
     });
@@ -86,6 +102,9 @@ describe('createMcpAzureDevOpsService', () => {
     ]);
     await expect(service.getUserWorkItems('s42', 'u1')).resolves.toMatchObject([
       { id: 11, title: 'Tarefa MCP' },
+    ]);
+    await expect(service.getUserPipelines()).resolves.toMatchObject([
+      { id: 501, name: 'portal-ci' },
     ]);
     await expect(service.getWorkItemDetails(11)).resolves.toMatchObject({
       sprintName: 'Sprint 42',

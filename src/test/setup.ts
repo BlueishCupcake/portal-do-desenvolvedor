@@ -3,6 +3,8 @@ import { afterEach } from 'vitest';
 
 import { LEAD_MODE_STORAGE_KEY } from '@/app/providers/leadModeContext.ts';
 import { THEME_STORAGE_KEY } from '@/app/providers/themeContext.ts';
+import { PIPELINE_NOTIFICATIONS_STORAGE_KEY } from '@/hooks/usePipelineNotifications.ts';
+import { TODOS_STORAGE_KEY } from '@/utils/todosStorage.ts';
 
 class ResizeObserverStub {
   observe(): void {}
@@ -49,4 +51,6 @@ afterEach(() => {
   document.documentElement.removeAttribute('data-theme');
   window.localStorage.removeItem(THEME_STORAGE_KEY);
   window.localStorage.removeItem(LEAD_MODE_STORAGE_KEY);
+  window.localStorage.removeItem(PIPELINE_NOTIFICATIONS_STORAGE_KEY);
+  window.localStorage.removeItem(TODOS_STORAGE_KEY);
 });

@@ -9,6 +9,8 @@ export interface WorkItem {
   type: WorkItemType;
   state: string;
   assignedTo: string;
+  assignedToId?: string;
+  assignedToUniqueName?: string;
   boardColumn: string;
   iterationPath: string;
   description?: string;
@@ -20,6 +22,7 @@ export interface WorkItem {
   bugStatus?: BugStatus;
   deployed?: boolean;
   releasePrCreated?: boolean;
+  storyPoints?: number;
 }
 
 export interface WorkItemDetails extends WorkItem {

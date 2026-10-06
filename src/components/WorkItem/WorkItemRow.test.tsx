@@ -69,8 +69,16 @@ describe('WorkItemRow', () => {
     );
 
     expect(screen.getByText('#123 · Task · Active')).toBeInTheDocument();
+    expect(screen.getByLabelText('Sem story points')).toBeInTheDocument();
     expect(screen.getByLabelText('Deployed: No')).toBeInTheDocument();
     expect(screen.getByLabelText('Release PR: not created')).toBeInTheDocument();
+  });
+
+  it('shows the story points before the board column', () => {
+    renderRow(createWorkItem({ storyPoints: 4 }));
+
+    expect(screen.getByLabelText('Story points: 4')).toBeInTheDocument();
+    expect(screen.getByText('4')).toBeInTheDocument();
   });
 
   it('shows the deployed column when a main pull request exists', () => {

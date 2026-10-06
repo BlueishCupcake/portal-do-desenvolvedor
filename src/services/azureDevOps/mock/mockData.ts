@@ -1,4 +1,5 @@
 import type { Developer } from '@/types/developer.ts';
+import type { PipelineRun } from '@/types/pipeline.ts';
 import type { Sprint } from '@/types/sprint.ts';
 import type { WorkItem, WorkItemDetails } from '@/types/workItem.ts';
 
@@ -7,6 +8,33 @@ export const mockDeveloper: Developer = {
   displayName: 'Sophie Quines',
   email: 'sophie.quines@example.com',
 };
+
+export const mockPipelines: PipelineRun[] = [
+  {
+    id: 501,
+    name: 'portal-ci',
+    buildNumber: '20261006.4',
+    status: 'inProgress',
+    requestedFor: 'Sophie Quines',
+    sourceBranch: 'refs/heads/feature/pipelines',
+    queueTime: '2026-10-06T14:00:00Z',
+    startTime: '2026-10-06T14:01:00Z',
+    url: 'https://dev.azure.com/contoso/portal/_build/results?buildId=501',
+  },
+  {
+    id: 500,
+    name: 'portal-quality',
+    buildNumber: '20261006.3',
+    status: 'completed',
+    result: 'succeeded',
+    requestedFor: 'Sophie Quines',
+    sourceBranch: 'refs/heads/main',
+    queueTime: '2026-10-06T12:00:00Z',
+    startTime: '2026-10-06T12:01:00Z',
+    finishTime: '2026-10-06T12:05:00Z',
+    url: 'https://dev.azure.com/contoso/portal/_build/results?buildId=500',
+  },
+];
 
 export const mockSprint: Sprint = {
   id: 'sprint-42',
@@ -40,6 +68,7 @@ export const mockWorkItems: WorkItem[] = [
     priority: 1,
     createdAt: '2026-10-01',
     updatedAt: '2026-10-04',
+    storyPoints: 3,
   },
   {
     id: 12346,
@@ -56,6 +85,7 @@ export const mockWorkItems: WorkItem[] = [
     updatedAt: '2026-10-03',
     relatedIds: [12347],
     deployed: true,
+    storyPoints: 5,
   },
   {
     id: 12347,
@@ -71,6 +101,7 @@ export const mockWorkItems: WorkItem[] = [
     createdAt: '2026-10-02',
     updatedAt: '2026-10-05',
     relatedIds: [12346],
+    storyPoints: 2,
   },
   {
     id: 12348,
@@ -86,6 +117,7 @@ export const mockWorkItems: WorkItem[] = [
     createdAt: '2026-10-01',
     updatedAt: '2026-10-06',
     deployed: true,
+    storyPoints: 3,
   },
   {
     id: 12349,
@@ -100,6 +132,7 @@ export const mockWorkItems: WorkItem[] = [
     priority: 2,
     createdAt: '2026-10-02',
     updatedAt: '2026-10-04',
+    storyPoints: 8,
   },
   {
     id: 12350,
@@ -113,6 +146,7 @@ export const mockWorkItems: WorkItem[] = [
     priority: 4,
     createdAt: '2026-10-03',
     updatedAt: '2026-10-03',
+    storyPoints: 5,
   },
   {
     id: 12351,
@@ -127,6 +161,7 @@ export const mockWorkItems: WorkItem[] = [
     priority: 1,
     createdAt: '2026-10-01',
     updatedAt: '2026-10-05',
+    storyPoints: 2,
   },
   {
     id: 12352,
@@ -141,6 +176,7 @@ export const mockWorkItems: WorkItem[] = [
     priority: 2,
     createdAt: '2026-10-02',
     updatedAt: '2026-10-05',
+    storyPoints: 4,
   },
   {
     id: 12340,
@@ -155,6 +191,7 @@ export const mockWorkItems: WorkItem[] = [
     priority: 2,
     createdAt: '2026-09-16',
     updatedAt: '2026-09-28',
+    storyPoints: 3,
   },
 ];
 

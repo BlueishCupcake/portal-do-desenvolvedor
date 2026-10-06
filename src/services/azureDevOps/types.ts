@@ -1,4 +1,5 @@
 import type { Developer } from '@/types/developer.ts';
+import type { PipelineRun } from '@/types/pipeline.ts';
 import type { Sprint } from '@/types/sprint.ts';
 import type { WorkItem, WorkItemDetails } from '@/types/workItem.ts';
 import type { JsonValue } from '@/utils/json.ts';
@@ -7,6 +8,7 @@ export interface AzureDevOpsService {
   getCurrentSprint(): Promise<Sprint>;
   getSprints(): Promise<Sprint[]>;
   getCurrentUser(): Promise<Developer>;
+  getUserPipelines(): Promise<PipelineRun[]>;
   getUserWorkItems(
     sprintId: string,
     userId: string,
@@ -34,6 +36,8 @@ export interface AzureWorkItemFields {
   'System.IterationPath': string;
   'System.Description'?: string;
   'Microsoft.VSTS.Common.Priority'?: number;
+  'Microsoft.VSTS.Scheduling.StoryPoints'?: number;
+  'Microsoft.VSTS.Scheduling.Effort'?: number;
   'System.CreatedDate'?: string;
   'System.ChangedDate'?: string;
   'System.IterationLevel3'?: string;
@@ -79,6 +83,7 @@ export interface AzureDevOpsContext {
 
 export interface AzureDevOpsMcpToolMap {
   getCurrentUser: string;
+  getUserPipelines: string;
   getCurrentSprint: string;
   getSprints: string;
   getUserWorkItems: string;

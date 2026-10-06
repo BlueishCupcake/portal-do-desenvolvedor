@@ -7,6 +7,7 @@
 .bug,
 .select,
 .assignee,
+.points,
 .releasePr,
 .deployed {
   min-width: 0;
@@ -33,6 +34,7 @@
   .bug,
   .select,
   .assignee,
+  .points,
   .releasePr,
   .deployed {
     padding: 0.55rem 0.85rem;

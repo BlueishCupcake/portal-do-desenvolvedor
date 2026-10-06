@@ -11,6 +11,7 @@ import {
   parseAzureWorkItem,
   parseAzureWorkItemList,
 } from '@/services/azureDevOps/parsers.ts';
+import { parsePipelineRunList } from '@/services/azureDevOps/pipelineParsers.ts';
 import type { AzureDevOpsService } from '@/services/azureDevOps/types.ts';
 import { AzureDevOpsError } from '@/services/azureDevOps/types.ts';
 import { isJsonObject, type JsonValue } from '@/utils/json.ts';
@@ -36,6 +37,10 @@ export function createRestAzureDevOpsService(): AzureDevOpsService {
   return {
     async getCurrentUser() {
       return mapAzureDeveloper(parseAzureDeveloper(await readApi('/me')));
+    },
+
+    async getUserPipelines() {
+      return parsePipelineRunList(await readApi('/pipelines'));
     },
 
     async getCurrentSprint() {

@@ -13,12 +13,16 @@ describe('azure devops server config', () => {
         VITE_AZURE_DEVOPS_PROJECT: 'portal',
         VITE_AZURE_DEVOPS_TEAM: 'devs',
         AZURE_DEVOPS_PAT: 'secret',
+        AZURE_DEVOPS_PIPELINE_PROJECT: 'pipelines',
+        AZURE_DEVOPS_PIPELINE_DEFINITION_IDS: '690, 1132,invalid',
       }),
     ).toEqual({
       organization: 'contoso',
       project: 'portal',
       team: 'devs',
       pat: 'secret',
+      pipelineProject: 'pipelines',
+      pipelineDefinitionIds: ['690', '1132'],
     });
   });
 
@@ -33,6 +37,8 @@ describe('azure devops server config', () => {
     ).toMatchObject({
       organization: 'server-org',
       project: 'server-project',
+      pipelineProject: 'server-project',
+      pipelineDefinitionIds: [],
     });
   });
 

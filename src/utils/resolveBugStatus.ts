@@ -24,7 +24,11 @@ export function resolveBugStatus(
       return false;
     }
 
-    return relatedIds.has(item.id) || (item.relatedIds ?? []).includes(workItem.id);
+    return (
+      relatedIds.has(item.id) ||
+      (workItem.id !== undefined &&
+        (item.relatedIds ?? []).includes(workItem.id))
+    );
   });
 
   if (relatedBugs.length === 0) {

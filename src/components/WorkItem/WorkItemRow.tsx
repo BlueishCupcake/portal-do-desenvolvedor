@@ -65,6 +65,17 @@ export function WorkItemRow({
       {leadMode ? (
         <td className={styles.assignee}>{workItem.assignedTo}</td>
       ) : null}
+      <td className={styles.points}>
+        <span
+          aria-label={
+            workItem.storyPoints === undefined
+              ? 'Sem story points'
+              : `Story points: ${String(workItem.storyPoints)}`
+          }
+        >
+          <Text as="span">{workItem.storyPoints ?? '—'}</Text>
+        </span>
+      </td>
       <td className={styles.board}>
         <BoardStatus column={workItem.boardColumn} />
       </td>

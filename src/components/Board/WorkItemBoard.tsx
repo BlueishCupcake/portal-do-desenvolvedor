@@ -101,6 +101,9 @@ export function WorkItemBoard({
               </th>
               <th scope="col">Tarefa</th>
               {leadMode ? <th scope="col">Responsável</th> : null}
+              <th className={styles.points} scope="col">
+                Points
+              </th>
               <th className={styles.board} scope="col">
                 Board
               </th>

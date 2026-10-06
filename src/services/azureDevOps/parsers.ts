@@ -66,6 +66,14 @@ export function parseAzureWorkItemFields(source: JsonObject): AzureWorkItemField
       source,
       'Microsoft.VSTS.Common.Priority',
     ),
+    'Microsoft.VSTS.Scheduling.StoryPoints': readNumberField(
+      source,
+      'Microsoft.VSTS.Scheduling.StoryPoints',
+    ),
+    'Microsoft.VSTS.Scheduling.Effort': readNumberField(
+      source,
+      'Microsoft.VSTS.Scheduling.Effort',
+    ),
     'System.CreatedDate': readStringField(source, 'System.CreatedDate'),
     'System.ChangedDate': readStringField(source, 'System.ChangedDate'),
     'System.IterationLevel3': readStringField(source, 'System.IterationLevel3'),

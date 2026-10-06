@@ -7,6 +7,8 @@ const env = {
   VITE_AZURE_DEVOPS_PROJECT: 'portal',
   VITE_AZURE_DEVOPS_TEAM: 'devs',
   AZURE_DEVOPS_PAT: 'secret',
+  AZURE_DEVOPS_PIPELINE_PROJECT: 'pipelines-project',
+  AZURE_DEVOPS_PIPELINE_DEFINITION_IDS: '690,1132',
 };
 
 describe('azure devops api handlers', () => {
@@ -49,6 +51,16 @@ describe('azure devops api handlers', () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
 
+      if (url.includes('/_apis/profile/profiles/me')) {
+        return {
+          ok: true,
+          json: async () => ({
+            displayName: 'Sophie Quines Mendonca',
+            emailAddress: 'sophie@contoso.com',
+          }),
+        };
+      }
+
       if (url.includes('connectionData')) {
         return {
           ok: true,
@@ -83,6 +95,33 @@ describe('azure devops api handlers', () => {
         return {
           ok: true,
           json: async () => ({ workItems: [{ id: 88 }] }),
+        };
+      }
+
+      if (url.includes('/_apis/build/builds')) {
+        expect(url).toContain('/pipelines-project/_apis/build/builds');
+        expect(url).toContain('requestedFor=u1');
+        expect(url).toContain('definitions=690%2C1132');
+        expect(url).toContain('statusFilter=all');
+        return {
+          ok: true,
+          json: async () => ({
+            value: [
+              {
+                id: 501,
+                buildNumber: '20261006.4',
+                status: 'inProgress',
+                definition: { name: 'portal-ci' },
+                requestedFor: { displayName: 'Sophie Quines' },
+                queueTime: '2026-10-06T14:00:00Z',
+                _links: {
+                  web: {
+                    href: 'https://dev.azure.com/contoso/portal/_build/results?buildId=501',
+                  },
+                },
+              },
+            ],
+          }),
         };
       }
 
@@ -129,7 +168,11 @@ describe('azure devops api handlers', () => {
       ),
     ).resolves.toMatchObject({
       status: 200,
-      body: { displayName: 'Sophie Quines', mailAddress: 'sophie@contoso.com' },
+      body: {
+        id: 'u1',
+        displayName: 'Sophie Quines Mendonca',
+        mailAddress: 'sophie@contoso.com',
+      },
     });
 
     await expect(
@@ -170,6 +213,18 @@ describe('azure devops api handlers', () => {
     ).resolves.toMatchObject({
       status: 200,
       body: { id: 88 },
+    });
+
+    await expect(
+      handleAzureDevOpsApi(
+        'GET',
+        '/api/azure-devops/pipelines',
+        new URLSearchParams(),
+        env,
+      ),
+    ).resolves.toMatchObject({
+      status: 200,
+      body: { value: [{ id: 501, status: 'inProgress' }] },
     });
   });
 
