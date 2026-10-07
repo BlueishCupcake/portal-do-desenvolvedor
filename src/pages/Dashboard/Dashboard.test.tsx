@@ -81,12 +81,18 @@ describe('Dashboard', () => {
     expect(screen.queryByText('Corrigir autenticação')).not.toBeInTheDocument();
 
     await user.clear(screen.getByLabelText('Buscar tarefa'));
-    await user.selectOptions(screen.getByLabelText('Board'), 'Done');
+    await user.selectOptions(screen.getByLabelText('Coluna do board'), 'Done');
     expect(screen.getByText('Criar componente')).toBeInTheDocument();
     expect(screen.queryByText('Corrigir autenticação')).not.toBeInTheDocument();
 
-    await user.selectOptions(screen.getByLabelText('Board'), 'Todas as colunas');
-    await user.selectOptions(screen.getByLabelText('Estado'), 'Resolved');
+    await user.selectOptions(
+      screen.getByLabelText('Coluna do board'),
+      'Todas as colunas do board',
+    );
+    await user.selectOptions(
+      screen.getByLabelText('Status do item'),
+      'Resolved',
+    );
     expect(screen.getByText('Criar componente')).toBeInTheDocument();
 
     expect(requestCount).toBe(1);
@@ -176,7 +182,7 @@ describe('Dashboard', () => {
     expect(await screen.findByText('Revisar contrato da API')).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Responsável' })).toBeInTheDocument();
     expect(screen.getAllByText('Sophie Quines').length).toBeGreaterThan(1);
-    expect(screen.getByText('Alex Santos')).toBeInTheDocument();
+    expect(screen.getAllByText('Alex Santos').length).toBeGreaterThan(1);
     expect(screen.getByLabelText('Pontos do usuário na sprint: 28')).toBeInTheDocument();
 
     await user.click(screen.getByLabelText('Selecionar Revisar contrato da API'));

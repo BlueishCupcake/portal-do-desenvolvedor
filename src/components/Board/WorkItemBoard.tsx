@@ -1,5 +1,5 @@
 import { Button, Checkbox } from '@poliedro/tamentai/web';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import styles from '@/components/Board/WorkItemBoard.module.css';
 import { DeployCardDialog } from '@/components/DeployCardDialog/DeployCardDialog.tsx';
@@ -13,6 +13,8 @@ interface WorkItemBoardProps {
   workItems: WorkItem[];
   catalog?: WorkItem[];
   leadMode?: boolean;
+  selectedIds?: number[];
+  onSelectedIdsChange?: (ids: number[]) => void;
   onSelect: (id: number) => void;
   onCreateDeployCard?: (input: CreateDeployCardInput) => Promise<DeployCard>;
 }
@@ -21,45 +23,63 @@ export function WorkItemBoard({
   workItems,
   catalog = workItems,
   leadMode = false,
+  selectedIds: controlledSelectedIds,
+  onSelectedIdsChange,
   onSelect,
   onCreateDeployCard,
 }: WorkItemBoardProps) {
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [internalSelectedIds, setInternalSelectedIds] = useState<number[]>([]);
   const [isRequestOpen, setIsRequestOpen] = useState(false);
   const [isDeployOpen, setIsDeployOpen] = useState(false);
+  const selectedIds = controlledSelectedIds ?? internalSelectedIds;
   const visibleIds = useMemo(() => workItems.map((item) => item.id), [workItems]);
+  const catalogIds = useMemo(() => catalog.map((item) => item.id), [catalog]);
+
+  const setSelectedIds = useCallback(
+    (next: number[]) => {
+      if (onSelectedIdsChange) {
+        onSelectedIdsChange(next);
+        return;
+      }
+
+      setInternalSelectedIds(next);
+    },
+    [onSelectedIdsChange],
+  );
 
   useEffect(() => {
-    setSelectedIds((current) => {
-      const next = current.filter((id) => visibleIds.includes(id));
-      return next.length === current.length ? current : next;
-    });
-  }, [visibleIds]);
+    const next = selectedIds.filter((id) => catalogIds.includes(id));
+    if (next.length !== selectedIds.length) {
+      setSelectedIds(next);
+    }
+  }, [catalogIds, selectedIds, setSelectedIds]);
 
   useEffect(() => {
     if (!leadMode) {
-      setSelectedIds([]);
+      if (selectedIds.length > 0) {
+        setSelectedIds([]);
+      }
       setIsRequestOpen(false);
       setIsDeployOpen(false);
     }
-  }, [leadMode]);
+  }, [leadMode, selectedIds, setSelectedIds]);
 
-  const selectedItems = workItems.filter((item) => selectedIds.includes(item.id));
+  const selectedItems = catalog.filter((item) => selectedIds.includes(item.id));
   const selectedAssignees = new Set(selectedItems.map((item) => item.assignedTo));
   const sameAssignee = selectedAssignees.size === 1;
   const canCreateDeployCard = selectedItems.length > 0;
   const allSelected =
     visibleIds.length > 0 && visibleIds.every((id) => selectedIds.includes(id));
-  const someSelected = selectedIds.length > 0 && !allSelected;
+  const someSelected =
+    visibleIds.some((id) => selectedIds.includes(id)) && !allSelected;
 
   function toggleItem(id: number, selected: boolean) {
-    setSelectedIds((current) => {
-      if (selected) {
-        return current.includes(id) ? current : [...current, id];
-      }
+    if (selected) {
+      setSelectedIds(selectedIds.includes(id) ? selectedIds : [...selectedIds, id]);
+      return;
+    }
 
-      return current.filter((itemId) => itemId !== id);
-    });
+    setSelectedIds(selectedIds.filter((itemId) => itemId !== id));
   }
 
   return (
@@ -76,7 +96,11 @@ export function WorkItemBoard({
                     disabled={visibleIds.length === 0}
                     aria-label="Selecionar todas as tarefas visíveis"
                     onCheckedChange={(checked) => {
-                      setSelectedIds(checked === true ? visibleIds : []);
+                      setSelectedIds(
+                        checked === true
+                          ? [...new Set([...selectedIds, ...visibleIds])]
+                          : selectedIds.filter((id) => !visibleIds.includes(id)),
+                      );
                     }}
                   />
                 </th>

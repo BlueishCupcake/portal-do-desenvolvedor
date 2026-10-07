@@ -167,6 +167,51 @@ describe('WorkItemBoard', () => {
     ).toHaveAttribute('href', 'https://dev.azure.com/item/120000');
   });
 
+  it('maintains selected work items when visible developers change', async () => {
+    const user = userEvent.setup();
+    const alexTask = createWorkItem({
+      id: 1,
+      title: 'Task Alex',
+      assignedTo: 'Alex Santos',
+    });
+    const sophieTask = createWorkItem({
+      id: 2,
+      title: 'Task Sophie',
+      assignedTo: 'Sophie Quines',
+    });
+    const catalog = [alexTask, sophieTask];
+    const { rerender } = render(
+      <WorkItemBoard
+        leadMode
+        workItems={catalog}
+        catalog={catalog}
+        onSelect={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByLabelText('Selecionar Task Alex'));
+
+    rerender(
+      <WorkItemBoard
+        leadMode
+        workItems={[sophieTask]}
+        catalog={catalog}
+        onSelect={vi.fn()}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Create deploy card' })).toBeVisible();
+
+    rerender(
+      <WorkItemBoard
+        leadMode
+        workItems={[alexTask]}
+        catalog={catalog}
+        onSelect={vi.fn()}
+      />,
+    );
+    expect(screen.getByLabelText('Selecionar Task Alex')).toBeChecked();
+  });
+
   it('shows bugs fixed when related bugs are resolved', () => {
     const task = createWorkItem({
       id: 1,

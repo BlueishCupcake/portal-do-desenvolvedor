@@ -1,5 +1,6 @@
 import { Button, ButtonGroup, Select } from '@poliedro/tamentai/web';
 
+import { DeveloperMultiSelect } from '@/components/WorkItem/DeveloperMultiSelect.tsx';
 import styles from '@/components/WorkItem/WorkItemFilters.module.css';
 import { WORK_ITEM_TYPE_FILTERS } from '@/constants/workItem.ts';
 import type { WorkItemTypeFilter } from '@/types/workItem.ts';
@@ -10,9 +11,12 @@ interface WorkItemFiltersProps {
   boardColumn: string;
   states: string[];
   boardColumns: string[];
+  developers?: string[];
+  selectedDevelopers?: string[];
   onTypeChange: (type: WorkItemTypeFilter) => void;
   onStateChange: (state: string) => void;
   onBoardColumnChange: (boardColumn: string) => void;
+  onDevelopersChange?: (developers: string[]) => void;
 }
 
 export function WorkItemFilters({
@@ -21,9 +25,12 @@ export function WorkItemFilters({
   boardColumn,
   states,
   boardColumns,
+  developers,
+  selectedDevelopers = [],
   onTypeChange,
   onStateChange,
   onBoardColumnChange,
+  onDevelopersChange,
 }: WorkItemFiltersProps) {
   return (
     <div className={styles.filters}>
@@ -45,7 +52,7 @@ export function WorkItemFilters({
       </ButtonGroup>
       <div className={styles.selects}>
         <Select
-          label="Estado"
+          label="Status do item"
           value={state}
           options={[
             { value: 'all', label: 'Todos os status' },
@@ -58,10 +65,10 @@ export function WorkItemFilters({
           }}
         />
         <Select
-          label="Board"
+          label="Coluna do board"
           value={boardColumn}
           options={[
-            { value: 'all', label: 'Todas as colunas' },
+            { value: 'all', label: 'Todas as colunas do board' },
             ...boardColumns.map((item) => ({ value: item, label: item })),
           ]}
           onValueChange={(value) => {
@@ -70,6 +77,13 @@ export function WorkItemFilters({
             }
           }}
         />
+        {developers && onDevelopersChange ? (
+          <DeveloperMultiSelect
+            developers={developers}
+            selected={selectedDevelopers}
+            onChange={onDevelopersChange}
+          />
+        ) : null}
       </div>
     </div>
   );

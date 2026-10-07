@@ -8,6 +8,7 @@ import type {
 } from '@/types/workItem.ts';
 import {
   matchesBoardColumn,
+  matchesDevelopers,
   matchesState,
   matchesType,
   uniqueSortedValues,
@@ -19,6 +20,7 @@ export function useDashboardFilters(workItems: WorkItem[]) {
   const [type, setType] = useState<WorkItemTypeFilter>('all');
   const [state, setState] = useState('all');
   const [boardColumn, setBoardColumn] = useState('all');
+  const [selectedDevelopers, setSelectedDevelopers] = useState<string[]>([]);
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortField>('updatedAt');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
@@ -33,22 +35,38 @@ export function useDashboardFilters(workItems: WorkItem[]) {
     [workItems],
   );
 
+  const developers = useMemo(
+    () => uniqueSortedValues(workItems.map((item) => item.assignedTo)),
+    [workItems],
+  );
+
   const visibleItems = useMemo(() => {
     const filtered = workItems.filter(
       (item) =>
         matchesType(item, type) &&
         matchesState(item, state) &&
         matchesBoardColumn(item, boardColumn) &&
+        matchesDevelopers(item, selectedDevelopers) &&
         matchesSearch(item, search),
     );
 
     return sortWorkItems(filtered, sortBy, sortDirection);
-  }, [boardColumn, search, sortBy, sortDirection, state, type, workItems]);
+  }, [
+    boardColumn,
+    search,
+    selectedDevelopers,
+    sortBy,
+    sortDirection,
+    state,
+    type,
+    workItems,
+  ]);
 
   const hasActiveFilters =
     type !== 'all' ||
     state !== 'all' ||
     boardColumn !== 'all' ||
+    selectedDevelopers.length > 0 ||
     search.trim().length > 0;
 
   return {
@@ -66,6 +84,9 @@ export function useDashboardFilters(workItems: WorkItem[]) {
     setSortDirection,
     boardColumns,
     states,
+    developers,
+    selectedDevelopers,
+    setSelectedDevelopers,
     visibleItems,
     hasActiveFilters,
   };

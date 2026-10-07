@@ -27,6 +27,10 @@ export function matchesBoardColumn(item: WorkItem, boardColumn: string): boolean
   return item.boardColumn === boardColumn;
 }
 
+export function matchesDevelopers(item: WorkItem, developers: string[]): boolean {
+  return developers.length === 0 || developers.includes(item.assignedTo);
+}
+
 export function uniqueSortedValues(values: string[]): string[] {
   return [...new Set(values.filter((value) => value.length > 0))].sort(
     (left, right) => left.localeCompare(right, 'pt-BR'),

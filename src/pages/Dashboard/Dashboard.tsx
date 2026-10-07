@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { WorkItemBoard } from '@/components/Board/WorkItemBoard.tsx';
 import { EmptyState } from '@/components/EmptyState/EmptyState.tsx';
@@ -38,6 +38,7 @@ export function Dashboard() {
   const [selectedSprintValue, setSelectedSprintValue] = useState<string | null>(
     null,
   );
+  const [selectedWorkItemIds, setSelectedWorkItemIds] = useState<number[]>([]);
   const { leadMode } = useLeadMode();
   const { view } = useWorkspaceView();
   const pipelinesQuery = usePipelines();
@@ -62,6 +63,14 @@ export function Dashboard() {
   const provider = readEnv('VITE_AZURE_DEVOPS_PROVIDER', 'mock');
   const detailsQuery = useWorkItemDetails(selectedId);
   const filters = useDashboardFilters(workItemsQuery.data ?? []);
+  const { setSelectedDevelopers } = filters;
+
+  useEffect(() => {
+    if (!leadMode) {
+      setSelectedWorkItemIds([]);
+      setSelectedDevelopers([]);
+    }
+  }, [leadMode, setSelectedDevelopers]);
 
   const isLoading =
     userQuery.isLoading ||
@@ -110,6 +119,8 @@ export function Dashboard() {
               userPoints={userPoints}
               onSprintChange={(value) => {
                 setSelectedId(null);
+                setSelectedWorkItemIds([]);
+                setSelectedDevelopers([]);
                 setSelectedSprintValue(value);
               }}
             />
@@ -138,6 +149,11 @@ export function Dashboard() {
                     onTypeChange={filters.setType}
                     onStateChange={filters.setState}
                     onBoardColumnChange={filters.setBoardColumn}
+                    developers={leadMode ? filters.developers : undefined}
+                    selectedDevelopers={filters.selectedDevelopers}
+                    onDevelopersChange={
+                      leadMode ? filters.setSelectedDevelopers : undefined
+                    }
                   />
                   <WorkItemSort
                     sortBy={filters.sortBy}
@@ -168,6 +184,8 @@ export function Dashboard() {
                     workItems={filters.visibleItems}
                     catalog={workItems}
                     leadMode={leadMode}
+                    selectedIds={selectedWorkItemIds}
+                    onSelectedIdsChange={setSelectedWorkItemIds}
                     onSelect={setSelectedId}
                     onCreateDeployCard={createDeployCard.mutateAsync}
                   />

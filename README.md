@@ -31,6 +31,9 @@ um. Ao selecionar tarefas de um único desenvolvedor, é possível gerar uma
 mensagem profissional, em português, solicitando a criação das pull requests.
 A mensagem contém links para os Work Items e pode ser copiada.
 
+O filtro **Desenvolvedores** permite combinar múltiplos responsáveis. Tarefas
+marcadas continuam selecionadas ao adicionar, remover ou limpar esse filtro.
+
 Ao selecionar pelo menos uma tarefa, a ação **Create deploy card** cria um Work
 Item no Azure DevOps. O usuário informa o título e o portal monta a descrição
 com as aplicações afetadas, pull requests destinadas à branch `main` e

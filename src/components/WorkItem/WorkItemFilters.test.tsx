@@ -20,7 +20,9 @@ describe('WorkItemFilters', () => {
     );
 
     expect(screen.getByRole('button', { name: 'Bugs' })).toBeInTheDocument();
-    expect(screen.getByRole('combobox', { name: 'Board' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('combobox', { name: 'Coluna do board' }),
+    ).toBeInTheDocument();
   });
 
   it('emits filter changes', async () => {
@@ -43,11 +45,57 @@ describe('WorkItemFilters', () => {
     );
 
     await user.click(screen.getByRole('button', { name: 'Tasks' }));
-    await user.selectOptions(screen.getByLabelText('Estado'), 'Active');
-    await user.selectOptions(screen.getByLabelText('Board'), 'Ag. QA');
+    await user.selectOptions(screen.getByLabelText('Status do item'), 'Active');
+    await user.selectOptions(screen.getByLabelText('Coluna do board'), 'Ag. QA');
 
     expect(onTypeChange).toHaveBeenCalledWith('Task');
     expect(onStateChange).toHaveBeenCalledWith('Active');
     expect(onBoardColumnChange).toHaveBeenCalledWith('Ag. QA');
+  });
+
+  it('selects multiple developers in lead mode', async () => {
+    const user = userEvent.setup();
+    const onDevelopersChange = vi.fn();
+    const { rerender } = render(
+      <WorkItemFilters
+        type="all"
+        state="all"
+        boardColumn="all"
+        states={[]}
+        boardColumns={[]}
+        developers={['Alex Santos', 'Sophie Quines']}
+        selectedDevelopers={[]}
+        onTypeChange={vi.fn()}
+        onStateChange={vi.fn()}
+        onBoardColumnChange={vi.fn()}
+        onDevelopersChange={onDevelopersChange}
+      />,
+    );
+
+    await user.click(screen.getByText('Todos os desenvolvedores'));
+    await user.click(screen.getByLabelText('Alex Santos'));
+    expect(onDevelopersChange).toHaveBeenCalledWith(['Alex Santos']);
+
+    rerender(
+      <WorkItemFilters
+        type="all"
+        state="all"
+        boardColumn="all"
+        states={[]}
+        boardColumns={[]}
+        developers={['Alex Santos', 'Sophie Quines']}
+        selectedDevelopers={['Alex Santos']}
+        onTypeChange={vi.fn()}
+        onStateChange={vi.fn()}
+        onBoardColumnChange={vi.fn()}
+        onDevelopersChange={onDevelopersChange}
+      />,
+    );
+
+    await user.click(screen.getByLabelText('Sophie Quines'));
+    expect(onDevelopersChange).toHaveBeenLastCalledWith([
+      'Alex Santos',
+      'Sophie Quines',
+    ]);
   });
 });

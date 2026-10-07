@@ -31,7 +31,7 @@ export function mapAzureWorkItem(workItem: AzureWorkItem): WorkItem {
     assignedToId: assignee.assignedToId,
     assignedToUniqueName: assignee.assignedToUniqueName,
     boardColumn:
-      workItem.fields['System.BoardColumn'] ?? workItem.fields['System.State'],
+      workItem.fields['System.BoardColumn'] ?? 'Sem coluna do board',
     iterationPath: workItem.fields['System.IterationPath'],
     description: description ? toPlainText(description) : undefined,
     url: workItem.url,
