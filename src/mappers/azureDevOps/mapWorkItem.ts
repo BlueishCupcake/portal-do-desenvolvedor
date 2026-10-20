@@ -11,6 +11,20 @@ function readRelatedIds(workItem: AzureWorkItem): number[] {
   });
 }
 
+function isBlockedFlag(value: string | boolean | undefined): boolean {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  return /^(yes|true|sim)$/i.test(value?.trim() ?? '');
+}
+
+function hasBlockedTag(tags: string | undefined): boolean {
+  return (tags ?? '')
+    .split(';')
+    .some((tag) => /block|bloque/i.test(tag.trim()));
+}
+
 function readStoryPoints(workItem: AzureWorkItem): number | undefined {
   return (
     workItem.fields['Microsoft.VSTS.Scheduling.StoryPoints'] ??
@@ -30,14 +44,15 @@ export function mapAzureWorkItem(workItem: AzureWorkItem): WorkItem {
     assignedTo: assignee.assignedTo,
     assignedToId: assignee.assignedToId,
     assignedToUniqueName: assignee.assignedToUniqueName,
-    boardColumn:
-      workItem.fields['System.BoardColumn'] ?? 'Sem coluna do board',
+    boardColumn: workItem.fields['System.BoardColumn'] ?? 'Sem coluna do board',
     iterationPath: workItem.fields['System.IterationPath'],
     description: description ? toPlainText(description) : undefined,
     url: workItem.url,
     priority: workItem.fields['Microsoft.VSTS.Common.Priority'],
     createdAt: workItem.fields['System.CreatedDate'],
     updatedAt: workItem.fields['System.ChangedDate'],
+    closedAt: workItem.fields['Microsoft.VSTS.Common.ClosedDate'],
+    dueDate: workItem.fields['Microsoft.VSTS.Scheduling.DueDate'],
     relatedIds: readRelatedIds(workItem),
     deployed: workItem.deployed === true,
     releasePrCreated: workItem.releasePrCreated === true,
@@ -50,6 +65,15 @@ export function mapAzureWorkItem(workItem: AzureWorkItem): WorkItem {
       status: pullRequest.status,
       url: pullRequest.url,
     })),
+    relatedBugs: workItem.relatedBugs?.map((bug) => ({
+      id: bug.id,
+      title: bug.title,
+      state: bug.state,
+      url: bug.url,
+    })),
+    blocked:
+      isBlockedFlag(workItem.fields['Microsoft.VSTS.CMMI.Blocked']) ||
+      hasBlockedTag(workItem.fields['System.Tags']),
   };
 }
 

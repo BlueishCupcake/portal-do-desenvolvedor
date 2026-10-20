@@ -81,6 +81,30 @@ describe('WorkItemRow', () => {
     expect(screen.getByText('4')).toBeInTheDocument();
   });
 
+  it('highlights work items blocked by the Azure blocked field', () => {
+    renderRow(
+      createWorkItem({
+        title: 'Tarefa bloqueada',
+        boardColumn: 'Em Desenvolvimento',
+        blocked: true,
+      }),
+    );
+
+    expect(
+      screen.getByLabelText('Work item Tarefa bloqueada bloqueada'),
+    ).toHaveAttribute('data-blocked', 'true');
+    expect(screen.getByText('Blocked')).toBeInTheDocument();
+  });
+
+  it('highlights blocked work items in red', () => {
+    renderRow(createWorkItem({ title: 'Tarefa bloqueada', boardColumn: 'Blocked' }));
+
+    expect(screen.getByLabelText('Work item Tarefa bloqueada bloqueada')).toHaveAttribute(
+      'data-blocked',
+      'true',
+    );
+  });
+
   it('shows the deployed column when a main pull request exists', () => {
     renderRow(createWorkItem({ deployed: true }));
 

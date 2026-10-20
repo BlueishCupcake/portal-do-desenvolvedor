@@ -12,9 +12,9 @@ describe('resolveBugStatus', () => {
     expect(
       resolveBugStatus(createWorkItem({ type: 'Bug', state: 'Resolved' })),
     ).toBe('fixed');
-    expect(
-      resolveBugStatus(createWorkItem({ type: 'Bug', state: 'Active' })),
-    ).toBe('open');
+    expect(resolveBugStatus(createWorkItem({ type: 'Bug', state: 'Active' }))).toBe(
+      'open',
+    );
   });
 
   it('uses related bugs on a task', () => {
@@ -25,5 +25,24 @@ describe('resolveBugStatus', () => {
     expect(resolveBugStatus(task, [task, openBug])).toBe('open');
     expect(resolveBugStatus(task, [task, fixedBug])).toBe('fixed');
     expect(resolveBugStatus(createWorkItem({ type: 'Task' }), [])).toBe('none');
+  });
+
+  it('uses enriched bugs that are outside the sprint catalog', () => {
+    const story = createWorkItem({
+      id: 113513,
+      type: 'User Story',
+      relatedBugs: [
+        { id: 115188, title: 'Resolved bug', state: 'Closed' },
+        { id: 115391, title: 'Open bug', state: 'New' },
+      ],
+    });
+
+    expect(resolveBugStatus(story, [story])).toBe('open');
+    expect(
+      resolveBugStatus({
+        ...story,
+        relatedBugs: [{ id: 115188, title: 'Resolved bug', state: 'Closed' }],
+      }),
+    ).toBe('fixed');
   });
 });

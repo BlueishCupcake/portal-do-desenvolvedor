@@ -347,7 +347,7 @@ describe('azure devops api handlers', () => {
       }),
     ).resolves.toMatchObject({
       status: 502,
-      body: { message: expect.stringMatching(/PAT|401/) },
+      body: { message: expect.stringMatching(/autenticar|401/) },
     });
   });
 
@@ -505,6 +505,109 @@ describe('azure devops api handlers', () => {
     );
   });
 
+  it('enriches sprint items with linked bugs outside the sprint', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+
+      if (url.includes('wiql')) {
+        return {
+          ok: true,
+          json: async () => ({ workItems: [{ id: 113513 }] }),
+        };
+      }
+
+      if (url.includes('ids=113513')) {
+        return {
+          ok: true,
+          json: async () => ({
+            value: [
+              {
+                id: 113513,
+                fields: {
+                  'System.Title': 'Story with bugs',
+                  'System.WorkItemType': 'User Story',
+                  'System.State': 'QA',
+                  'System.IterationPath': 'Portal\\Sprint 42',
+                },
+                relations: [
+                  {
+                    rel: 'System.LinkTypes.Hierarchy-Forward',
+                    url: 'https://dev.azure.com/org/_apis/wit/workItems/115188',
+                  },
+                  {
+                    rel: 'System.LinkTypes.Hierarchy-Forward',
+                    url: 'https://dev.azure.com/org/_apis/wit/workItems/115391',
+                  },
+                  {
+                    rel: 'Microsoft.VSTS.Common.TestedBy-Forward',
+                    url: 'https://dev.azure.com/org/_apis/wit/workItems/115392',
+                  },
+                ],
+              },
+            ],
+          }),
+        };
+      }
+
+      if (url.includes('ids=115188%2C115391') || url.includes('ids=115188,115391')) {
+        return {
+          ok: true,
+          json: async () => ({
+            value: [
+              {
+                id: 115188,
+                fields: {
+                  'System.Title': 'Resolved bug',
+                  'System.WorkItemType': 'Bug',
+                  'System.State': 'Closed',
+                  'System.IterationPath': 'Other Sprint',
+                },
+              },
+              {
+                id: 115391,
+                fields: {
+                  'System.Title': 'Open bug',
+                  'System.WorkItemType': 'Bug',
+                  'System.State': 'New',
+                  'System.IterationPath': 'Other Sprint',
+                },
+              },
+            ],
+          }),
+        };
+      }
+
+      throw new Error(`Unexpected URL ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await handleAzureDevOpsApi(
+      'GET',
+      '/api/azure-devops/work-items',
+      new URLSearchParams('sprintId=Portal\\Sprint 42'),
+      env,
+    );
+
+    expect(result).toMatchObject({
+      status: 200,
+      body: {
+        value: [
+          {
+            id: 113513,
+            relatedBugs: [
+              { id: 115188, state: 'Closed' },
+              { id: 115391, state: 'New' },
+            ],
+          },
+        ],
+      },
+    });
+    expect(fetchMock).not.toHaveBeenCalledWith(
+      expect.stringContaining('115392'),
+      expect.anything(),
+    );
+  });
+
   it('queries the whole sprint in lead mode', async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
@@ -587,5 +690,267 @@ describe('azure devops api handlers', () => {
         env,
       ),
     ).resolves.toEqual({ status: 200, body: { value: [] } });
+  });
+
+  it('loads personal metrics from WIQL, identity and optional read APIs', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+
+      if (url.includes('connectionData')) {
+        return {
+          ok: true,
+          json: async () => ({
+            authenticatedUser: {
+              id: 'u1',
+              providerDisplayName: 'Sophie Quines',
+            },
+          }),
+        };
+      }
+
+      if (url.includes('/_apis/profile/profiles/me')) {
+        return {
+          ok: true,
+          json: async () => ({
+            displayName: 'Sophie Quines',
+            emailAddress: 'sophie@contoso.com',
+          }),
+        };
+      }
+
+      if (url.includes('wiql')) {
+        expect(init?.method).toBe('POST');
+        expect(JSON.parse(String(init?.body)).query).toContain('[System.AssignedTo] = @Me');
+        expect(url).not.toContain('userId=');
+        return {
+          ok: true,
+          json: async () => ({ workItems: [{ id: 88 }, { id: 88 }] }),
+        };
+      }
+
+      if (url.includes('/_apis/wit/workitems')) {
+        expect(url).toContain('fields=');
+        expect(url).toContain('ids=88');
+        return {
+          ok: true,
+          json: async () => ({
+            value: [
+              {
+                id: 88,
+                fields: {
+                  'System.Title': 'Tarefa',
+                  'System.WorkItemType': 'Task',
+                  'System.State': 'Active',
+                  'System.IterationPath': 'Portal\\Sprint 42',
+                },
+              },
+            ],
+          }),
+        };
+      }
+
+      if (url.includes('/_apis/git/pullrequests')) {
+        expect(url).toContain('searchCriteria.creatorId=u1');
+        return {
+          ok: true,
+          json: async () => ({ value: [{ pullRequestId: 1 }, { pullRequestId: 2 }] }),
+        };
+      }
+
+      if (url.includes('/_apis/build/builds')) {
+        return {
+          ok: true,
+          json: async () => ({ value: [{ id: 501 }] }),
+        };
+      }
+
+      throw new Error(`Unexpected URL ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await handleAzureDevOpsApi(
+      'GET',
+      '/api/azure-devops/metrics',
+      new URLSearchParams('scope=personal&period=current-sprint&sprintId=Portal\\Sprint 42&userId=someone-else'),
+      env,
+    );
+
+    expect(result.status).toBe(200);
+    expect(result.body).toMatchObject({
+      sources: {
+        workItems: 'ok',
+        pullRequests: 'ok',
+        pipelines: 'ok',
+      },
+      pullRequestCount: 2,
+      pipelineCount: 1,
+      vdmClosedInMonth: 1,
+      workItems: [{ id: 88 }],
+    });
+  });
+
+  it('scopes rolling metrics to the project and selected period', async () => {
+    const queries: string[] = [];
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+
+      if (url.includes('connectionData') || url.includes('/profiles/me')) {
+        return {
+          ok: true,
+          json: async () => ({
+            authenticatedUser: { id: 'u1', providerDisplayName: 'Sophie' },
+            displayName: 'Sophie',
+          }),
+        };
+      }
+
+      if (url.includes('wiql')) {
+        queries.push(JSON.parse(String(init?.body)).query as string);
+        return { ok: true, json: async () => ({ workItems: [{ id: 88 }] }) };
+      }
+
+      if (url.includes('/_apis/wit/workitems')) {
+        return {
+          ok: true,
+          json: async () => ({
+            value: [
+              {
+                id: 88,
+                fields: {
+                  'System.Title': 'Tarefa',
+                  'System.WorkItemType': 'Task',
+                  'System.State': 'Active',
+                },
+              },
+            ],
+          }),
+        };
+      }
+
+      if (url.includes('pullrequests') || url.includes('builds')) {
+        return { ok: true, json: async () => ({ value: [] }) };
+      }
+
+      throw new Error(`Unexpected URL ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await handleAzureDevOpsApi(
+      'GET',
+      '/api/azure-devops/metrics',
+      new URLSearchParams('scope=personal&period=7-days'),
+      env,
+    );
+
+    expect(result.status).toBe(200);
+    expect(queries.some((query) => query.includes('[System.TeamProject] = @project'))).toBe(
+      true,
+    );
+    expect(queries.some((query) => query.includes('[System.ChangedDate] >= '))).toBe(true);
+    expect(queries.every((query) => query.includes('[System.AssignedTo] = @Me'))).toBe(true);
+    expect(queries.some((query) => query.includes('[Microsoft.VSTS.Common.ClosedDate] >= '))).toBe(
+      true,
+    );
+  });
+
+  it('queries multiple sprints in a single work items WIQL', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+
+      if (url.includes('wiql')) {
+        const query = JSON.parse(String(init?.body)).query as string;
+        expect(query).toContain('[System.TeamProject] = @project');
+        expect(query).toContain("[System.IterationPath] UNDER 'Portal\\Sprint 42'");
+        expect(query).toContain("[System.IterationPath] UNDER 'Portal\\Sprint 41'");
+        return { ok: true, json: async () => ({ workItems: [] }) };
+      }
+
+      throw new Error(`Unexpected URL ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const params = new URLSearchParams();
+    params.append('sprintId', 'Portal\\Sprint 42');
+    params.append('sprintId', 'Portal\\Sprint 41');
+
+    await expect(
+      handleAzureDevOpsApi('GET', '/api/azure-devops/work-items', params, env),
+    ).resolves.toEqual({ status: 200, body: { value: [] } });
+  });
+
+  it('keeps work item metrics when pull requests are unauthorized', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input);
+
+      if (url.includes('connectionData') || url.includes('/profiles/me')) {
+        return {
+          ok: true,
+          json: async () => ({
+            authenticatedUser: { id: 'u1', providerDisplayName: 'Sophie' },
+            displayName: 'Sophie',
+          }),
+        };
+      }
+
+      if (url.includes('wiql')) {
+        return { ok: true, json: async () => ({ workItems: [{ id: 1 }] }) };
+      }
+
+      if (url.includes('/_apis/wit/workitems')) {
+        return {
+          ok: true,
+          json: async () => ({
+            value: [
+              {
+                id: 1,
+                fields: {
+                  'System.Title': 'Tarefa',
+                  'System.WorkItemType': 'Task',
+                  'System.State': 'Active',
+                  'System.IterationPath': 'Sprint 42',
+                },
+              },
+            ],
+          }),
+        };
+      }
+
+      if (url.includes('pullrequests')) {
+        return { ok: false, status: 403, json: async () => ({ message: 'Forbidden' }) };
+      }
+
+      if (url.includes('builds')) {
+        return { ok: true, json: async () => ({ value: [] }) };
+      }
+
+      throw new Error(`Unexpected URL ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await handleAzureDevOpsApi(
+      'GET',
+      '/api/azure-devops/metrics',
+      new URLSearchParams('scope=personal&period=current-sprint'),
+      env,
+    );
+
+    expect(result.status).toBe(200);
+    expect(result.body).toMatchObject({
+      sources: { workItems: 'ok', pullRequests: 'unavailable' },
+      workItems: [{ id: 1 }],
+    });
+    expect(result.body).not.toMatchObject({ pullRequestCount: 0 });
+  });
+
+  it('rejects an invalid metrics scope with 400', async () => {
+    const result = await handleAzureDevOpsApi(
+      'GET',
+      '/api/azure-devops/metrics',
+      new URLSearchParams('scope=world'),
+      env,
+    );
+
+    expect(result.status).toBe(400);
+    expect(result.body).toMatchObject({ message: expect.stringContaining('Escopo') });
   });
 });

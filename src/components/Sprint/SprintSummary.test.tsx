@@ -8,6 +8,7 @@ import {
   mockSprint,
   mockSprints,
 } from '@/services/azureDevOps/mock/mockData.ts';
+import { sprintValue } from '@/utils/sprint.ts';
 
 describe('SprintSummary', () => {
   it('renders a placeholder while the sprint is unknown', () => {
@@ -23,25 +24,31 @@ describe('SprintSummary', () => {
     expect(screen.getByText(/01\/10\/2026 → 15\/10\/2026/)).toBeInTheDocument();
   });
 
-  it('lets the user choose another sprint', async () => {
+  it('lets the user choose multiple sprints', async () => {
     const user = userEvent.setup();
-    const onSprintChange = vi.fn();
+    const onSprintsChange = vi.fn();
 
     render(
       <SprintSummary
         sprint={mockSprint}
         sprints={mockSprints}
+        selectedSprintValues={[sprintValue(mockSprint)]}
         userPoints={13}
-        onSprintChange={onSprintChange}
+        pulledCards={7}
+        closedCards={4}
+        onSprintsChange={onSprintsChange}
       />,
     );
 
-    await user.selectOptions(
-      screen.getByLabelText('Sprint'),
-      mockPreviousSprint.path,
-    );
+    await user.click(screen.getByLabelText('Sprint'));
+    await user.click(screen.getByRole('checkbox', { name: 'Sprint 41' }));
 
-    expect(onSprintChange).toHaveBeenCalledWith(mockPreviousSprint.path);
+    expect(onSprintsChange).toHaveBeenCalledWith([
+      sprintValue(mockSprint),
+      sprintValue(mockPreviousSprint),
+    ]);
     expect(screen.getByText('Pontos produzidos: 13')).toBeInTheDocument();
+    expect(screen.getByText('Cards puxados: 7')).toBeInTheDocument();
+    expect(screen.getByText('Cards fechados: 4')).toBeInTheDocument();
   });
 });

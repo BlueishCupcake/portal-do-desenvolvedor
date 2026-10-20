@@ -5,6 +5,7 @@ import { resolveBoardStatus, resolveBoardStatusKey } from '@/utils/resolveBoardS
 
 interface BoardStatusProps {
   column: string;
+  blocked?: boolean;
 }
 
 const STATUS_COLORS: Record<BoardStatusKey, BadgeColor> = {
@@ -17,9 +18,12 @@ const STATUS_COLORS: Record<BoardStatusKey, BadgeColor> = {
   default: 'gray',
 };
 
-export function BoardStatus({ column }: BoardStatusProps) {
-  const status = resolveBoardStatus(column);
-  const color = STATUS_COLORS[resolveBoardStatusKey(column)];
+export function BoardStatus({ column, blocked = false }: BoardStatusProps) {
+  const key = blocked ? 'blocked' : resolveBoardStatusKey(column);
+  const status = blocked
+    ? { key: 'blocked' as const, token: 'blocked' }
+    : resolveBoardStatus(column);
+  const color = STATUS_COLORS[key];
 
   return (
     <Badge
@@ -30,8 +34,9 @@ export function BoardStatus({ column }: BoardStatusProps) {
       shape="pilled"
       data-tag="board"
       data-status={status.token}
+      title={blocked ? `Blocked · ${column}` : column}
     >
-      {column}
+      {blocked ? 'Blocked' : column}
     </Badge>
   );
 }

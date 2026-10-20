@@ -7,6 +7,7 @@
 .page :global([class*='_root_rfibq']) {
   width: 100%;
   max-width: none !important;
+  overflow: visible !important;
 }
 
 .main {
@@ -21,6 +22,7 @@
 .main > * {
   width: 100%;
   min-width: 0;
+  overflow: visible;
 }
 
 .toolbar {

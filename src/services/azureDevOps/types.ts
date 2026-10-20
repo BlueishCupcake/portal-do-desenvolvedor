@@ -1,5 +1,6 @@
 import type { CreateDeployCardInput, DeployCard } from '@/types/deployCard.ts';
 import type { Developer } from '@/types/developer.ts';
+import type { MetricsDashboardData, MetricsQuery } from '@/types/metrics.ts';
 import type { PipelineRun } from '@/types/pipeline.ts';
 import type { Sprint } from '@/types/sprint.ts';
 import type { WorkItem, WorkItemDetails } from '@/types/workItem.ts';
@@ -11,11 +12,12 @@ export interface AzureDevOpsService {
   getCurrentUser(): Promise<Developer>;
   getUserPipelines(): Promise<PipelineRun[]>;
   getUserWorkItems(
-    sprintId: string,
+    sprintId: string | readonly string[],
     userId: string,
     options?: WorkItemQueryOptions,
   ): Promise<WorkItem[]>;
   getWorkItemDetails(id: number): Promise<WorkItemDetails>;
+  getMetrics(query: MetricsQuery): Promise<MetricsDashboardData>;
   createDeployCard(input: CreateDeployCardInput): Promise<DeployCard>;
 }
 
@@ -42,7 +44,11 @@ export interface AzureWorkItemFields {
   'Microsoft.VSTS.Scheduling.Effort'?: number;
   'System.CreatedDate'?: string;
   'System.ChangedDate'?: string;
+  'Microsoft.VSTS.Common.ClosedDate'?: string;
+  'Microsoft.VSTS.Scheduling.DueDate'?: string;
   'System.IterationLevel3'?: string;
+  'System.Tags'?: string;
+  'Microsoft.VSTS.CMMI.Blocked'?: string | boolean;
 }
 
 export interface AzureWorkItemRelation {
@@ -58,6 +64,14 @@ export interface AzureWorkItem {
   deployed?: boolean;
   releasePrCreated?: boolean;
   pullRequests?: AzurePullRequest[];
+  relatedBugs?: AzureRelatedBug[];
+}
+
+export interface AzureRelatedBug {
+  id: number;
+  title: string;
+  state: string;
+  url?: string;
 }
 
 export interface AzurePullRequest {

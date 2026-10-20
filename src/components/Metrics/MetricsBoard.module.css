@@ -1,0 +1,62 @@
+.section {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+}
+
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+  color: var(--color-ink);
+}
+
+.tabs {
+  width: 100%;
+}
+
+:global([data-theme='dark']) .tabs :global([role='tab']:not([data-selected='true']):not(:hover)) {
+  color: #0f172a !important;
+}
+
+:global([data-theme='dark']) .tabs :global([role='tab'][data-selected='true']) {
+  color: #f8fafc !important;
+}
+
+.partial {
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.75rem;
+}
+
+.progress {
+  margin: 0;
+}
+
+.charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.75rem;
+}
+
+@media (max-width: 720px) {
+  .heading {
+    align-items: stretch;
+  }
+}

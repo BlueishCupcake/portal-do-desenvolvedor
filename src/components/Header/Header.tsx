@@ -85,12 +85,18 @@ export function Header({ user }: HeaderProps) {
               label: 'Pipelines',
               active: view === 'pipelines',
             },
+            {
+              value: 'metrics',
+              label: 'Metrics',
+              active: view === 'metrics',
+            },
           ]}
           onChange={(value) => {
             if (
               value === 'tasks' ||
               value === 'todos' ||
-              value === 'pipelines'
+              value === 'pipelines' ||
+              value === 'metrics'
             ) {
               setView(value satisfies WorkspaceView);
             }

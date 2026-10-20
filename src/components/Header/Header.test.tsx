@@ -66,10 +66,14 @@ describe('Header', () => {
     const tasksTab = screen.getByRole('tab', { name: 'Tasks' });
     const todosTab = screen.getByRole('tab', { name: "To Do's" });
     const pipelinesTab = screen.getByRole('tab', { name: 'Pipelines' });
+    const metricsTab = screen.getByRole('tab', { name: 'Metrics' });
     const leadMode = screen.getByRole('button', { name: 'Ativar Lead Mode' });
     expect(tasksTab.compareDocumentPosition(leadMode)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(todosTab.compareDocumentPosition(leadMode)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-    expect(pipelinesTab.compareDocumentPosition(leadMode)).toBe(
+    expect(pipelinesTab.compareDocumentPosition(metricsTab)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+    expect(metricsTab.compareDocumentPosition(leadMode)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
     expect(leadMode.compareDocumentPosition(screen.getByRole('button', { name: 'Ativar modo escuro' }))).toBe(
@@ -100,6 +104,17 @@ describe('Header', () => {
     expect(screen.getByRole('tab', { name: 'Pipelines' })).toHaveAttribute(
       'aria-selected',
       'true',
+    );
+
+    await user.click(screen.getByRole('tab', { name: 'Metrics' }));
+
+    expect(screen.getByRole('tab', { name: 'Metrics' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(screen.getByRole('tab', { name: 'Pipelines' })).toHaveAttribute(
+      'aria-selected',
+      'false',
     );
   });
 });

@@ -1,6 +1,6 @@
 import { createContext } from 'react';
 
-export type WorkspaceView = 'tasks' | 'todos' | 'pipelines';
+export type WorkspaceView = 'tasks' | 'todos' | 'pipelines' | 'metrics';
 
 export interface WorkspaceViewContextValue {
   view: WorkspaceView;

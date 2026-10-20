@@ -25,6 +25,10 @@
   color: #0f172a;
 }
 
+:global([data-theme='dark']) .tabs :global([role='tab'][data-selected='true']) {
+  color: #f8fafc;
+}
+
 .tabLabel {
   position: relative;
   display: inline-flex;

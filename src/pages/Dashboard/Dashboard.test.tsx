@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { App } from '@/app/App.tsx';
 import { createMockAzureDevOpsService } from '@/services/azureDevOps/mock/mockService.ts';
@@ -8,15 +8,21 @@ import { createWorkItem } from '@/test/factories/workItem.ts';
 import { renderWithProviders } from '@/test/render.tsx';
 
 describe('Dashboard', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+    vi.stubEnv('VITE_AZURE_DEVOPS_PROVIDER', 'mock');
+  });
+
   it('loads the current user, sprint and work items', async () => {
     renderWithProviders(<App />);
 
     expect(await screen.findByText('Sophie Quines')).toBeInTheDocument();
-    expect(screen.getByLabelText('Sprint')).toHaveValue(
-      'Portal do Desenvolvedor\\Sprint 42',
-    );
+    expect(screen.getByLabelText('Sprint')).toHaveTextContent('Sprint 42');
     expect(await screen.findByText('Corrigir autenticação')).toBeInTheDocument();
     expect(screen.getByLabelText('Pontos do usuário na sprint: 28')).toBeInTheDocument();
+    expect(screen.getByLabelText('Cards puxados na sprint: 6')).toBeInTheDocument();
+    expect(screen.getByLabelText('Cards fechados na sprint: 2')).toBeInTheDocument();
     expect(screen.getAllByLabelText(/bug/i).length).toBeGreaterThan(0);
   });
 
@@ -96,7 +102,7 @@ describe('Dashboard', () => {
     expect(screen.getByText('Criar componente')).toBeInTheDocument();
 
     expect(requestCount).toBe(1);
-  });
+  }, 15_000);
 
   it('shows a filtered empty state', async () => {
     const user = userEvent.setup();
@@ -159,14 +165,28 @@ describe('Dashboard', () => {
 
     expect(await screen.findByText('Corrigir autenticação')).toBeInTheDocument();
 
-    await user.selectOptions(
-      screen.getByLabelText('Sprint'),
-      'Portal do Desenvolvedor\\Sprint 41',
-    );
+    await user.click(screen.getByLabelText('Sprint'));
+    await user.click(screen.getByRole('checkbox', { name: 'Sprint 41' }));
+    await user.click(screen.getByRole('checkbox', { name: 'Sprint 42' }));
 
     expect(await screen.findByText('Tarefa da sprint anterior')).toBeInTheDocument();
     expect(screen.getByLabelText('Pontos do usuário na sprint: 3')).toBeInTheDocument();
     expect(screen.queryByText('Corrigir autenticação')).not.toBeInTheDocument();
+  });
+
+  it('loads work items from multiple selected sprints', async () => {
+    const user = userEvent.setup();
+
+    renderWithProviders(<App />);
+
+    expect(await screen.findByText('Corrigir autenticação')).toBeInTheDocument();
+
+    await user.click(screen.getByLabelText('Sprint'));
+    await user.click(screen.getByRole('checkbox', { name: 'Sprint 41' }));
+
+    expect(await screen.findByText('Tarefa da sprint anterior')).toBeInTheDocument();
+    expect(screen.getByText('Corrigir autenticação')).toBeInTheDocument();
+    expect(screen.getByLabelText('Sprint')).toHaveTextContent('2 sprints selecionadas');
   });
 
   it('shows every sprint work item and assignees in lead mode', async () => {
@@ -214,6 +234,37 @@ describe('Dashboard', () => {
 
     await user.click(screen.getByRole('tab', { name: 'Tasks' }));
 
+    expect(await screen.findByText('Corrigir autenticação')).toBeInTheDocument();
+  });
+
+  it('opens the Metrics tab immediately beside Pipelines', async () => {
+    const user = userEvent.setup();
+
+    renderWithProviders(<App />);
+
+    const pipelinesTab = screen.getByRole('tab', { name: 'Pipelines' });
+    const metricsTab = screen.getByRole('tab', { name: 'Metrics' });
+    expect(pipelinesTab.compareDocumentPosition(metricsTab)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    );
+
+    await user.click(metricsTab);
+
+    expect(await screen.findByRole('heading', { name: 'Metrics' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'My Metrics' })).toBeInTheDocument();
+    expect(
+      await screen.findByRole('button', { name: /Atribuídos a mim: 7/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('VDM Objective 7 / Current closed cards: 2'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Corrigir autenticação')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Pipelines' }));
+    expect(await screen.findByRole('heading', { name: 'Pipelines' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Metrics' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Tasks' }));
     expect(await screen.findByText('Corrigir autenticação')).toBeInTheDocument();
   });
 

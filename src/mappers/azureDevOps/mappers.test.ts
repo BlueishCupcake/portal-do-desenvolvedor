@@ -29,6 +29,8 @@ const azureWorkItem: AzureWorkItem = {
     'Microsoft.VSTS.Scheduling.StoryPoints': 5,
     'System.CreatedDate': '2026-10-01',
     'System.ChangedDate': '2026-10-04',
+    'Microsoft.VSTS.Common.ClosedDate': '2026-10-05',
+    'Microsoft.VSTS.Scheduling.DueDate': '2026-10-02',
   },
 };
 
@@ -59,7 +61,20 @@ describe('azure devops mappers', () => {
       deployed: false,
       releasePrCreated: false,
       storyPoints: 5,
+      blocked: false,
+      closedAt: '2026-10-05',
+      dueDate: '2026-10-02',
     });
+
+    expect(
+      mapAzureWorkItem({
+        ...azureWorkItem,
+        fields: {
+          ...azureWorkItem.fields,
+          'Microsoft.VSTS.CMMI.Blocked': 'Yes',
+        },
+      }).blocked,
+    ).toBe(true);
 
     expect(
       mapAzureWorkItem({
@@ -77,10 +92,19 @@ describe('azure devops mappers', () => {
         ...azureWorkItem,
         deployed: true,
         releasePrCreated: true,
+        relatedBugs: [
+          {
+            id: 115188,
+            title: 'Linked bug',
+            state: 'Closed',
+            url: 'https://dev.azure.com/items/115188',
+          },
+        ],
       }),
     ).toMatchObject({
       deployed: true,
       releasePrCreated: true,
+      relatedBugs: [{ id: 115188, state: 'Closed' }],
     });
 
     expect(

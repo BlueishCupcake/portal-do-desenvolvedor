@@ -1,0 +1,99 @@
+.field {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  gap: 0.4rem;
+  min-width: min(100%, 18rem);
+}
+
+.label {
+  color: var(--color-ink);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.details {
+  position: relative;
+}
+
+.details summary {
+  position: relative;
+  padding: 0.7rem 2.25rem 0.7rem 0.9rem;
+  overflow: hidden;
+  color: var(--color-ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  list-style: none;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.details summary::-webkit-details-marker {
+  display: none;
+}
+
+.details summary::after {
+  position: absolute;
+  top: 50%;
+  right: 0.9rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-top: -0.35rem;
+  content: '';
+  border-right: 2px solid var(--color-ink-soft);
+  border-bottom: 2px solid var(--color-ink-soft);
+  transform: rotate(45deg);
+}
+
+.details[open] summary::after {
+  margin-top: -0.1rem;
+  transform: rotate(225deg);
+}
+
+.menu {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  display: grid;
+  gap: 0.75rem;
+  width: max(100%, 18rem);
+  max-height: min(22rem, 70vh);
+  padding: 0.85rem;
+  overflow: auto;
+  isolation: isolate;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 28%);
+  background: var(--color-surface);
+}
+
+.options {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  margin: 0;
+}
+
+.option :global(label),
+.option :global([class*='Checkbox']),
+.option :global([class*='checkbox']) {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+}
+
+.empty {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.875rem;
+}

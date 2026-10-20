@@ -20,6 +20,9 @@ import type {
 } from '@/services/azureDevOps/types.ts';
 import { AzureDevOpsError } from '@/services/azureDevOps/types.ts';
 import { isJsonObject, type JsonValue } from '@/utils/json.ts';
+import { buildMetricsDashboard } from '@/utils/metrics/buildMetricsDashboard.ts';
+import { dedupeWorkItems } from '@/utils/metrics/classify.ts';
+import { sprintValue } from '@/utils/sprint.ts';
 
 export interface McpAzureDevOpsServiceOptions {
   transport: McpTransport;
@@ -90,13 +93,19 @@ export function createMcpAzureDevOpsService(
     },
 
     async getUserWorkItems(sprintId, userId, options) {
-      const payload = await invokeTool(tools.getUserWorkItems, {
-        sprintId,
-        userId,
-        leadMode: options?.leadMode === true,
-      });
+      const sprintIds = Array.isArray(sprintId) ? sprintId : [sprintId];
+      const batches = await Promise.all(
+        sprintIds.map(async (id) => {
+          const payload = await invokeTool(tools.getUserWorkItems, {
+            sprintId: id,
+            userId,
+            leadMode: options?.leadMode === true,
+          });
+          return parseAzureWorkItemList(payload).map((item) => mapAzureWorkItem(item));
+        }),
+      );
 
-      return parseAzureWorkItemList(payload).map((item) => mapAzureWorkItem(item));
+      return dedupeWorkItems(batches.flat());
     },
 
     async getWorkItemDetails(id) {
@@ -108,6 +117,71 @@ export function createMcpAzureDevOpsService(
         workItem.fields['System.IterationPath'];
 
       return mapAzureWorkItemDetails(workItem, sprintName);
+    },
+
+    async getMetrics(query) {
+      const user = await this.getCurrentUser();
+      const sprint = await this.getCurrentSprint();
+      const sprints = query.period === 'current-sprint' ? [sprint] : await this.getSprints();
+      const batches = await Promise.all(
+        sprints.map((item) =>
+          this.getUserWorkItems(query.sprintId ?? sprintValue(item), user.id, {
+            leadMode: query.scope !== 'personal',
+          }),
+        ),
+      );
+
+      let pipelineCount: number | undefined;
+      let pipelineState: 'ok' | 'error' | 'unavailable' = 'unavailable';
+      const errors: Array<{ source: 'pipelines'; message: string }> = [];
+
+      if (query.scope === 'personal') {
+        try {
+          pipelineCount = (await this.getUserPipelines()).length;
+          pipelineState = 'ok';
+        } catch (error) {
+          pipelineState = 'error';
+          errors.push({
+            source: 'pipelines',
+            message:
+              error instanceof Error
+                ? error.message
+                : 'Não foi possível carregar as pipelines.',
+          });
+        }
+      }
+
+      return buildMetricsDashboard({
+        generatedAt: new Date().toISOString(),
+        scope: query.scope,
+        period: query.period,
+        context: {
+          organization: context.organization,
+          project: context.project,
+          team: context.team,
+          periodStart: sprint.startDate,
+          periodEnd: sprint.endDate,
+          sprintId: query.sprintId ?? sprintValue(sprint),
+          sprintName: sprint.name,
+          permissionNote:
+            'O provider MCP calcula métricas a partir das ferramentas já existentes. Pull requests e Analytics ficam indisponíveis.',
+        },
+        items: dedupeWorkItems(batches.flat()),
+        user,
+        pipelineCount,
+        sources: {
+          workItems: 'ok',
+          pullRequests: 'unavailable',
+          pipelines: pipelineState,
+        },
+        errors: [
+          {
+            source: 'pullRequests',
+            message: 'O provider MCP não consulta a API de pull requests.',
+          },
+          ...errors,
+        ],
+      });
     },
 
     async createDeployCard() {

@@ -1,13 +1,22 @@
 import {
   azureDevOpsRequest,
   encodeSegment,
-  escapeWiqlValue,
   withApiVersion,
 } from './client.ts';
 import {
   type AzureDevOpsServerConfig,
   readAzureDevOpsServerConfig,
 } from './config.ts';
+import {
+  buildMetricsWiqlQueries,
+  buildSprintWorkItemsQuery,
+  buildVdmClosedInMonthQuery,
+  METRICS_WORK_ITEM_FIELDS,
+  parseMetricsQuery,
+  resolveRollingPeriodStart,
+  startOfUtcMonth,
+  uniqueWorkItemIds,
+} from './metrics.ts';
 import {
   type AzurePullRequestRef,
   type AzurePullRequestSummary,
@@ -387,6 +396,7 @@ async function createDeployCard(
 async function fetchWorkItemsByIds(
   config: AzureDevOpsServerConfig,
   ids: number[],
+  fields?: string,
 ): Promise<JsonRecord[]> {
   if (ids.length === 0) {
     return [];
@@ -396,10 +406,17 @@ async function fetchWorkItemsByIds(
 
   for (let index = 0; index < ids.length; index += 200) {
     const chunk = ids.slice(index, index + 200);
+    const query = new URLSearchParams({ ids: chunk.join(',') });
+    if (fields) {
+      query.set('fields', fields);
+    } else {
+      query.set('$expand', 'all');
+    }
+
     const payload = await azureDevOpsRequest(
       config,
       withApiVersion(
-        `/${encodeSegment(config.project)}/_apis/wit/workitems?ids=${chunk.join(',')}&$expand=all`,
+        `/${encodeSegment(config.project)}/_apis/wit/workitems?${query.toString()}`,
       ),
     );
 
@@ -413,6 +430,82 @@ async function fetchWorkItemsByIds(
   }
 
   return items;
+}
+
+function readLinkedWorkItemIds(item: JsonRecord): number[] {
+  if (!Array.isArray(item.relations)) {
+    return [];
+  }
+
+  return item.relations.flatMap((relation) => {
+    if (!isRecord(relation)) {
+      return [];
+    }
+
+    const rel = readString(relation.rel) ?? '';
+    if (
+      rel === 'System.LinkTypes.Hierarchy-Reverse' ||
+      rel.startsWith('Microsoft.VSTS.Common.TestedBy')
+    ) {
+      return [];
+    }
+
+    const match = /\/workItems\/(\d+)$/i.exec(readString(relation.url) ?? '');
+    return match?.[1] ? [Number(match[1])] : [];
+  });
+}
+
+async function withRelatedBugs(
+  config: AzureDevOpsServerConfig,
+  items: JsonRecord[],
+): Promise<JsonRecord[]> {
+  const linkedIds = [
+    ...new Set(items.flatMap((item) => readLinkedWorkItemIds(item))),
+  ];
+  if (linkedIds.length === 0) {
+    return items;
+  }
+
+  const linkedItems = await fetchWorkItemsByIds(config, linkedIds);
+  const bugsById = new Map<number, JsonRecord>();
+
+  for (const linkedItem of linkedItems) {
+    const id = readNumber(linkedItem.id);
+    const fields = isRecord(linkedItem.fields) ? linkedItem.fields : undefined;
+    if (
+      id !== undefined &&
+      readString(fields?.['System.WorkItemType'])?.toLowerCase() === 'bug'
+    ) {
+      bugsById.set(id, linkedItem);
+    }
+  }
+
+  return items.map((item) => ({
+    ...item,
+    relatedBugs: readLinkedWorkItemIds(item).flatMap((id) => {
+      const bug = bugsById.get(id);
+      const fields = bug && isRecord(bug.fields) ? bug.fields : undefined;
+      if (!bug || !fields) {
+        return [];
+      }
+
+      return [
+        {
+          id,
+          title: readString(fields['System.Title']) ?? `Bug #${String(id)}`,
+          state: readString(fields['System.State']) ?? '',
+          url: readString(bug.url),
+        },
+      ];
+    }),
+  }));
+}
+
+async function enrichWorkItems(
+  config: AzureDevOpsServerConfig,
+  items: JsonRecord[],
+): Promise<JsonRecord[]> {
+  return withDeployment(config, await withRelatedBugs(config, items));
 }
 
 function readWorkItemIds(payload: unknown): number[] {
@@ -430,14 +523,202 @@ function readWorkItemIds(payload: unknown): number[] {
   });
 }
 
-function buildSprintQuery(sprintId: string, leadMode: boolean): string {
-  const assignment = leadMode ? '' : ' AND [System.AssignedTo] = @Me';
+function buildSprintQuery(sprintIds: readonly string[], leadMode: boolean): string {
+  return buildSprintWorkItemsQuery(sprintIds, leadMode);
+}
 
-  if (sprintId.includes('\\') || sprintId.includes('/')) {
-    return `SELECT [System.Id] FROM WorkItems WHERE [System.IterationPath] UNDER '${escapeWiqlValue(sprintId)}'${assignment}`;
+async function queryWorkItemIds(
+  config: AzureDevOpsServerConfig,
+  teamSegment: string,
+  query: string,
+): Promise<number[]> {
+  const payload = await azureDevOpsRequest(
+    config,
+    withApiVersion(`${teamSegment}/_apis/wit/wiql`),
+    {
+      method: 'POST',
+      body: JSON.stringify({ query }),
+    },
+  );
+
+  return readWorkItemIds(payload);
+}
+
+async function fetchOptionalCount(
+  load: () => Promise<number>,
+): Promise<{ count?: number; state: 'ok' | 'unavailable' | 'error'; message?: string }> {
+  try {
+    return { count: await load(), state: 'ok' };
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Não foi possível carregar a fonte.';
+    const unavailable =
+      message.includes('autenticar') ||
+      message.includes('403') ||
+      message.includes('404');
+
+    return {
+      state: unavailable ? 'unavailable' : 'error',
+      message,
+    };
+  }
+}
+
+async function loadMetrics(
+  config: AzureDevOpsServerConfig,
+  team: string,
+  teamSegment: string,
+  searchParams: URLSearchParams,
+): Promise<JsonRecord> {
+  let query;
+  try {
+    query = parseMetricsQuery(searchParams);
+  } catch (error) {
+    throw new InvalidRequestError(
+      error instanceof Error ? error.message : 'Consulta de métricas inválida.',
+    );
   }
 
-  return `SELECT [System.Id] FROM WorkItems WHERE [System.IterationPath] = @CurrentIteration${assignment}`;
+  const generatedAt = new Date().toISOString();
+  const periodStart = resolveRollingPeriodStart(query.period);
+  const queries = buildMetricsWiqlQueries({
+    scope: query.scope,
+    period: query.period,
+    sprintId: query.sprintId,
+    periodStart: periodStart?.toISOString(),
+  });
+
+  const idBatches = await Promise.all(
+    queries.map((wiql) => queryWorkItemIds(config, teamSegment, wiql)),
+  );
+  const ids = uniqueWorkItemIds(idBatches.flat());
+  const errors: JsonRecord[] = [];
+
+  if (ids.length >= 20_000) {
+    errors.push({
+      source: 'workItems',
+      message:
+        'A consulta atingiu o limite de 20.000 itens do WIQL. Os totais podem estar incompletos.',
+    });
+  }
+
+  const workItems = await fetchWorkItemsByIds(
+    config,
+    ids,
+    METRICS_WORK_ITEM_FIELDS,
+  );
+
+  const identity = await getAuthenticatedIdentity(config);
+  const identityId = readString(identity.id);
+
+  const pullRequests =
+    query.scope === 'personal' && identityId
+      ? await fetchOptionalCount(async () => {
+          const payload = await azureDevOpsRequest(
+            config,
+            withApiVersion(
+              `/${encodeSegment(config.project)}/_apis/git/pullrequests?searchCriteria.creatorId=${encodeSegment(identityId)}&searchCriteria.status=all&$top=200`,
+            ),
+          );
+
+          if (!isRecord(payload) || !Array.isArray(payload.value)) {
+            throw new Error('Lista de pull requests inválida.');
+          }
+
+          if (payload.value.length >= 200) {
+            errors.push({
+              source: 'pullRequests',
+              message:
+                'A API de pull requests retornou o limite da página. A contagem pode estar incompleta.',
+            });
+          }
+
+          return payload.value.length;
+        })
+      : {
+          state: 'unavailable' as const,
+          message:
+            query.scope === 'personal'
+              ? 'Não foi possível resolver o id estável do usuário autenticado para consultar pull requests.'
+              : undefined,
+        };
+
+  const pipelines =
+    query.scope === 'personal'
+      ? await fetchOptionalCount(async () => {
+          const requestedFor =
+            identityId ??
+            readString(identity.uniqueName) ??
+            readString(identity.mailAddress);
+
+          if (!requestedFor) {
+            throw new Error('Não foi possível identificar o usuário das pipelines.');
+          }
+
+          const pipelineQuery = new URLSearchParams({
+            requestedFor,
+            statusFilter: 'all',
+            queryOrder: 'queueTimeDescending',
+            $top: '50',
+          });
+          if (config.pipelineDefinitionIds.length > 0) {
+            pipelineQuery.set('definitions', config.pipelineDefinitionIds.join(','));
+          }
+
+          const payload = await azureDevOpsRequest(
+            config,
+            withApiVersion(
+              `/${encodeSegment(config.pipelineProject)}/_apis/build/builds?${pipelineQuery.toString()}`,
+            ),
+          );
+
+          if (!isRecord(payload) || !Array.isArray(payload.value)) {
+            throw new Error('Lista de pipelines inválida.');
+          }
+
+          return payload.value.length;
+        })
+      : { state: 'unavailable' as const };
+
+  if (pullRequests.message) {
+    errors.push({ source: 'pullRequests', message: pullRequests.message });
+  }
+  if (pipelines.message) {
+    errors.push({ source: 'pipelines', message: pipelines.message });
+  }
+
+  const monthStart = startOfUtcMonth();
+  const vdmClosed = await fetchOptionalCount(async () => {
+    const vdmIds = await queryWorkItemIds(
+      config,
+      teamSegment,
+      buildVdmClosedInMonthQuery(monthStart.toISOString()),
+    );
+    return uniqueWorkItemIds(vdmIds).length;
+  });
+  return {
+    generatedAt,
+    context: {
+      organization: config.organization,
+      project: config.project,
+      team,
+      period: query.period,
+      periodStart: periodStart?.toISOString(),
+      periodEnd: generatedAt,
+      sprintId: query.sprintId,
+    },
+    workItems,
+    pullRequestCount: pullRequests.count,
+    pipelineCount: pipelines.count,
+    vdmClosedInMonth: vdmClosed.count,
+    vdmMonthStart: monthStart.toISOString(),
+    sources: {
+      workItems: 'ok',
+      pullRequests: pullRequests.state,
+      pipelines: pipelines.state,
+    },
+    errors,
+  };
 }
 
 export async function handleAzureDevOpsApi(
@@ -556,26 +837,33 @@ export async function handleAzureDevOpsApi(
           `/${encodeSegment(config.project)}/_apis/wit/workitems/${detailsMatch[1]}?$expand=all`,
         ),
       );
-      const [item] = await withDeployment(config, [withWebUrl(config, payload)]);
+      const [item] = await enrichWorkItems(config, [withWebUrl(config, payload)]);
       return { status: 200, body: item };
     }
 
+    if (pathname === '/api/azure-devops/metrics') {
+      return {
+        status: 200,
+        body: await loadMetrics(config, team, teamSegment, searchParams),
+      };
+    }
+
     if (pathname === '/api/azure-devops/work-items') {
-      const sprintId = searchParams.get('sprintId') ?? '';
+      const sprintIds = searchParams.getAll('sprintId').filter((id) => id.length > 0);
       const leadMode = searchParams.get('leadMode') === 'true';
       const queryPayload = await azureDevOpsRequest(
         config,
         withApiVersion(`${teamSegment}/_apis/wit/wiql`),
         {
           method: 'POST',
-          body: JSON.stringify({ query: buildSprintQuery(sprintId, leadMode) }),
+          body: JSON.stringify({ query: buildSprintQuery(sprintIds, leadMode) }),
         },
       );
 
       return {
         status: 200,
         body: {
-          value: await withDeployment(
+          value: await enrichWorkItems(
             config,
             await fetchWorkItemsByIds(config, readWorkItemIds(queryPayload)),
           ),

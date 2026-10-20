@@ -232,4 +232,21 @@ describe('WorkItemBoard', () => {
     expect(screen.getByLabelText('Bugs fixed')).toBeInTheDocument();
     expect(screen.getByText('Bugs fixed')).toBeInTheDocument();
   });
+
+  it('shows an open bug linked outside the sprint catalog', () => {
+    const story = createWorkItem({
+      id: 113513,
+      type: 'User Story',
+      relatedBugs: [
+        { id: 115188, title: 'Resolved bug', state: 'Closed' },
+        { id: 115391, title: 'Open bug', state: 'New' },
+      ],
+    });
+
+    render(
+      <WorkItemBoard workItems={[story]} catalog={[story]} onSelect={vi.fn()} />,
+    );
+
+    expect(screen.getByLabelText('Bug')).toBeInTheDocument();
+  });
 });

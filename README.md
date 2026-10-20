@@ -14,12 +14,13 @@ testes automatizados com Vitest.
 
 ### Tasks
 
-- seleção de qualquer Sprint disponível para o time;
+- seleção de uma ou várias Sprints disponíveis para o time;
 - tarefas atribuídas ao usuário autenticado pelo PAT;
 - filtros por tipo, estado e coluna do Board;
 - busca e ordenação;
 - indicação de bugs abertos ou corrigidos;
 - Story Points de cada item e total de pontos do usuário na Sprint;
+- contagem de cards puxados, desconsiderando `Ag Desenvolvimento`, e fechados;
 - indicação de PR de release e deploy em `main`;
 - detalhes do Work Item em um painel lateral;
 - tema claro e escuro.
@@ -61,6 +62,44 @@ do navegador para receber avisos quando uma pipeline começar ou terminar.
 O portal precisa permanecer aberto; notificações com o navegador fechado
 exigiriam Web Push ou Service Hooks em um backend.
 
+### Metrics
+
+A aba Metrics fica imediatamente ao lado de Pipelines e é somente leitura.
+Ela calcula KPIs a partir das APIs REST oficiais já usadas pelo portal,
+sem raspar dashboards nativos do Azure DevOps e sem inventar valores.
+
+Escopos:
+
+- **My Metrics**: work items atribuídos ao usuário autenticado
+  (`[System.AssignedTo] = @Me`). A identidade vem do PAT; o navegador
+  não envia um user id como prova de identidade.
+- **Team Metrics**: itens da sprint/consulta do time configurado.
+- **Project Metrics**: itens visíveis no projeto. A ausência de um item
+  não significa que ele não exista — a visão é limitada pelas permissões
+  do usuário autenticado.
+
+Períodos: sprint atual, 7, 30 ou 90 dias (UTC). As consultas de 7, 30 e
+90 dias ficam limitadas ao projeto configurado e à data do período
+(`[System.ChangedDate]` e `[Microsoft.VSTS.Common.ClosedDate]`).
+Contagens atuais (atribuídos, ativos, bugs) são separadas das contagens
+do período (concluídos). Um item atribuído só conta como concluído
+quando o estado indica conclusão.
+
+O indicador **VDM Objective** usa `VITE_AZURE_DEVOPS_VDM_OBJECTIVE`
+(padrão 7) e mostra quantos cards o usuário autenticado fechou no mês
+UTC corrente, independentemente do período selecionado.
+
+Fontes:
+
+- Work Items / WIQL e Work Item Tracking;
+- Builds (as mesmas até 50 execuções recentes da aba Pipelines);
+- Git Pull Requests por `creatorId` estável, quando autorizado;
+- Analytics e tendências históricas não entram nesta versão.
+
+O atraso só aparece quando `Microsoft.VSTS.Scheduling.DueDate` existe.
+Uma consulta com falha não vira zero: a página mostra erro ou dado
+parcial. O PAT fica no proxy do servidor, sem prefixo `VITE_`.
+
 ## Pré-requisitos
 
 - Node.js 18 ou superior;
@@ -98,6 +137,7 @@ VITE_AZURE_DEVOPS_PROVIDER=rest
 VITE_AZURE_DEVOPS_ORGANIZATION=sua-organizacao
 VITE_AZURE_DEVOPS_PROJECT=projeto-dos-work-items
 VITE_AZURE_DEVOPS_TEAM=nome-do-time
+VITE_AZURE_DEVOPS_VDM_OBJECTIVE=7
 
 AZURE_DEVOPS_PIPELINE_PROJECT=projeto-das-pipelines
 AZURE_DEVOPS_PIPELINE_DEFINITION_IDS=690,1132,848
@@ -115,6 +155,8 @@ do navegador.
 - `VITE_AZURE_DEVOPS_ORGANIZATION`: nome da organização na URL do Azure;
 - `VITE_AZURE_DEVOPS_PROJECT`: projeto que contém os Work Items;
 - `VITE_AZURE_DEVOPS_TEAM`: time usado para localizar Sprints e iterações.
+- `VITE_AZURE_DEVOPS_VDM_OBJECTIVE`: meta mensal de cards fechados no VDM;
+  o padrão é `7`.
 - `AZURE_DEVOPS_DEPLOY_WORK_ITEM_TYPE`: tipo usado ao criar o cartão de deploy;
   o padrão é `Task`. Informe o nome exato de outro tipo existente no processo do
   projeto, se necessário.

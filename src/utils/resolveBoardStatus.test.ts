@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  isBlockedWorkItem,
   resolveBoardStatus,
   resolveBoardStatusKey,
 } from '@/utils/resolveBoardStatus.ts';
@@ -21,5 +22,21 @@ describe('resolveBoardStatus', () => {
     expect(resolveBoardStatusKey('Bloqueado')).toBe('blocked');
     expect(resolveBoardStatusKey('New')).toBe('default');
     expect(resolveBoardStatus('Ag. QA').token).toBe('qa');
+    expect(
+      isBlockedWorkItem({ boardColumn: 'Blocked', state: 'Active' }),
+    ).toBe(true);
+    expect(
+      isBlockedWorkItem({ boardColumn: 'Doing', state: 'Bloqueado' }),
+    ).toBe(true);
+    expect(isBlockedWorkItem({ boardColumn: 'Doing', state: 'Active' })).toBe(
+      false,
+    );
+    expect(
+      isBlockedWorkItem({
+        boardColumn: 'Em Desenvolvimento',
+        state: 'Desenvolvimento',
+        blocked: true,
+      }),
+    ).toBe(true);
   });
 });

@@ -49,3 +49,15 @@ export function resolveBoardStatus(column: string): BoardStatusVisual {
     token: boardStatusConfig[key].token,
   };
 }
+
+export function isBlockedWorkItem(item: {
+  boardColumn: string;
+  state: string;
+  blocked?: boolean;
+}): boolean {
+  return (
+    item.blocked === true ||
+    resolveBoardStatusKey(item.boardColumn) === 'blocked' ||
+    resolveBoardStatusKey(item.state) === 'blocked'
+  );
+}

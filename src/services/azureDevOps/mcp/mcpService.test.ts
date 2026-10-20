@@ -109,6 +109,13 @@ describe('createMcpAzureDevOpsService', () => {
     await expect(service.getWorkItemDetails(11)).resolves.toMatchObject({
       sprintName: 'Sprint 42',
     });
+    const metrics = await service.getMetrics({
+      scope: 'personal',
+      period: 'current-sprint',
+      sprintId: 's42',
+    });
+    expect(metrics.sources.pullRequests).toBe('unavailable');
+    expect(metrics.metrics?.kpis.find((kpi) => kpi.id === 'pipelines')?.value).toBe(1);
   });
 
   it('reads the current sprint from a value list and infers sprint name', async () => {
@@ -181,6 +188,47 @@ describe('createMcpAzureDevOpsService', () => {
     await expect(unknownService.getCurrentUser()).rejects.toThrow(
       'Não foi possível comunicar com o Azure DevOps através do MCP.',
     );
+  });
+
+  it('marks pipeline metrics as error when the MCP tool fails', async () => {
+    const service = createMcpAzureDevOpsService({
+      tools,
+      context,
+      transport: createTransport(async (tool): Promise<JsonValue> => {
+        if (tool === 'get_current_user') {
+          return { displayName: 'Sophie', id: 'u1' };
+        }
+        if (tool === 'get_current_sprint' || tool === 'get_sprints') {
+          return {
+            value: [
+              {
+                id: 's42',
+                name: 'Sprint 42',
+                path: 'Sprint 42',
+                attributes: { startDate: '2026-10-01', finishDate: '2026-10-15' },
+              },
+            ],
+          };
+        }
+        if (tool === 'get_user_work_items') {
+          return { value: [azureItem] };
+        }
+        if (tool === 'get_user_pipelines') {
+          throw 'pipelines indisponíveis';
+        }
+        return azureItem;
+      }),
+    });
+
+    const metrics = await service.getMetrics({
+      scope: 'personal',
+      period: '7-days',
+      sprintId: 's42',
+    });
+
+    expect(metrics.sources.pipelines).toBe('error');
+    expect(metrics.errors.some((error) => error.source === 'pipelines')).toBe(true);
+    expect(metrics.metrics?.kpis.some((kpi) => kpi.id === 'pipelines')).toBe(false);
   });
 
   it('fails when the current sprint list is empty', async () => {

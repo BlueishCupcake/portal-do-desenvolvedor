@@ -1,6 +1,8 @@
 import '@testing-library/jest-dom/vitest';
 
-import { afterEach } from 'vitest';
+import { afterEach, vi } from 'vitest';
+
+vi.stubEnv('VITE_AZURE_DEVOPS_PROVIDER', 'mock');
 
 import { LEAD_MODE_STORAGE_KEY } from '@/app/providers/leadModeContext.ts';
 import { THEME_STORAGE_KEY } from '@/app/providers/themeContext.ts';

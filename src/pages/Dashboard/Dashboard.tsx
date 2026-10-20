@@ -6,6 +6,7 @@ import { ErrorState } from '@/components/ErrorState/ErrorState.tsx';
 import { Header } from '@/components/Header/Header.tsx';
 import { IntegrationNotice } from '@/components/IntegrationNotice/IntegrationNotice.tsx';
 import { DashboardSkeleton } from '@/components/Loading/DashboardSkeleton.tsx';
+import { MetricsBoard } from '@/components/Metrics/MetricsBoard.tsx';
 import { PipelinesBoard } from '@/components/Pipelines/PipelinesBoard.tsx';
 import { SprintSummary } from '@/components/Sprint/SprintSummary.tsx';
 import { TodosBoard } from '@/components/Todos/TodosBoard.tsx';
@@ -25,6 +26,7 @@ import { useWorkItemDetails } from '@/hooks/useWorkItemDetails.ts';
 import { useWorkItems } from '@/hooks/useWorkItems.ts';
 import { useWorkspaceView } from '@/hooks/useWorkspaceView.ts';
 import styles from '@/pages/Dashboard/Dashboard.module.css';
+import { countAssignedSprintCards } from '@/utils/countAssignedSprintCards.ts';
 import { readEnv } from '@/utils/env.ts';
 import { findSprint, mergeSprints, sprintValue } from '@/utils/sprint.ts';
 import { sumAssignedStoryPoints } from '@/utils/sumAssignedStoryPoints.ts';
@@ -35,9 +37,7 @@ function readErrorMessage(error: Error | null): string | null {
 
 export function Dashboard() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [selectedSprintValue, setSelectedSprintValue] = useState<string | null>(
-    null,
-  );
+  const [selectedSprintValues, setSelectedSprintValues] = useState<string[]>([]);
   const [selectedWorkItemIds, setSelectedWorkItemIds] = useState<number[]>([]);
   const { leadMode } = useLeadMode();
   const { view } = useWorkspaceView();
@@ -51,12 +51,20 @@ export function Dashboard() {
     () => mergeSprints(sprintsQuery.data ?? [], sprintQuery.data),
     [sprintsQuery.data, sprintQuery.data],
   );
-  const selectedSprint =
-    findSprint(availableSprints, selectedSprintValue) ??
-    sprintQuery.data ??
-    availableSprints[0];
+  const defaultSprint = sprintQuery.data ?? availableSprints[0];
+  const effectiveSprintValues =
+    selectedSprintValues.length > 0
+      ? selectedSprintValues
+      : defaultSprint
+        ? [sprintValue(defaultSprint)]
+        : [];
+  const selectedSprints = effectiveSprintValues.flatMap((value) => {
+    const sprint = findSprint(availableSprints, value);
+    return sprint ? [sprint] : [];
+  });
+  const selectedSprint = selectedSprints[0] ?? defaultSprint;
   const workItemsQuery = useWorkItems({
-    sprintId: selectedSprint ? sprintValue(selectedSprint) : undefined,
+    sprintIds: effectiveSprintValues,
     userId: userQuery.data?.id,
     leadMode,
   });
@@ -90,6 +98,7 @@ export function Dashboard() {
 
   const workItems = workItemsQuery.data ?? [];
   const userPoints = sumAssignedStoryPoints(workItems, userQuery.data);
+  const userCardCounts = countAssignedSprintCards(workItems, userQuery.data);
 
   return (
     <div className={styles.page}>
@@ -110,18 +119,25 @@ export function Dashboard() {
             }}
           />
         </main>
+      ) : view === 'metrics' ? (
+        <main className={styles.main}>
+          <MetricsBoard />
+        </main>
       ) : (
         <>
           <main className={styles.main}>
             <SprintSummary
               sprint={selectedSprint}
               sprints={availableSprints}
+              selectedSprintValues={effectiveSprintValues}
               userPoints={userPoints}
-              onSprintChange={(value) => {
+              pulledCards={userCardCounts.pulled}
+              closedCards={userCardCounts.closed}
+              onSprintsChange={(values) => {
                 setSelectedId(null);
                 setSelectedWorkItemIds([]);
                 setSelectedDevelopers([]);
-                setSelectedSprintValue(value);
+                setSelectedSprintValues(values);
               }}
             />
             <IntegrationNotice provider={provider} />

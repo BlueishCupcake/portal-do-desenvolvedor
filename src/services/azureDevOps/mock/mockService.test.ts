@@ -38,6 +38,31 @@ describe('createMockAzureDevOpsService', () => {
       id: 12345,
       sprintName: 'Sprint 42',
     });
+    const metrics = await service.getMetrics({
+      scope: 'personal',
+      period: 'current-sprint',
+      sprintId: 'sprint-42',
+    });
+    expect(metrics.metrics?.kpis.find((kpi) => kpi.id === 'assigned')?.value).toBe(7);
+    expect(metrics.vdm).toMatchObject({ objective: 7, closedInMonth: 2 });
+    expect(metrics.sources.pullRequests).toBe('ok');
+    const weekMetrics = await service.getMetrics({
+      scope: 'personal',
+      period: '7-days',
+    });
+    expect(weekMetrics.metrics?.kpis.find((kpi) => kpi.id === 'assigned')?.value).toBe(7);
+    expect(weekMetrics.metrics?.items.some((item) => item.id === 12340)).toBe(false);
+    await expect(
+      service.getUserWorkItems(
+        ['sprint-42', 'sprint-41'],
+        'sophie-quines',
+      ),
+    ).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ title: 'Corrigir autenticação' }),
+        expect.objectContaining({ title: 'Tarefa da sprint anterior' }),
+      ]),
+    );
     await expect(
       service.createDeployCard({
         title: 'Deploy Sprint 42',
@@ -65,12 +90,16 @@ describe('createMockAzureDevOpsService', () => {
       failWorkItems: true,
       failWorkItemDetails: true,
       failCreateDeployCard: true,
+      failMetrics: true,
     });
 
     await expect(failing.getCurrentUser()).rejects.toThrow('usuário atual');
     await expect(failing.getCurrentSprint()).rejects.toThrow('Sprint atual');
     await expect(failing.getUserWorkItems('s', 'u')).rejects.toThrow('work items');
     await expect(failing.getWorkItemDetails(1)).rejects.toThrow('detalhes');
+    await expect(
+      failing.getMetrics({ scope: 'personal', period: 'current-sprint' }),
+    ).rejects.toThrow('métricas');
     await expect(
       failing.createDeployCard({
         title: 'Deploy',

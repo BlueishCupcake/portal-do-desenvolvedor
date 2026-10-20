@@ -2,6 +2,7 @@ import type {
   AzureIdentity,
   AzureIdentityRef,
   AzurePullRequest,
+  AzureRelatedBug,
   AzureSprint,
   AzureWorkItem,
   AzureWorkItemFields,
@@ -78,6 +79,30 @@ function parsePullRequests(source: JsonObject): AzurePullRequest[] {
   });
 }
 
+function parseRelatedBugs(source: JsonObject): AzureRelatedBug[] {
+  return (readArrayField(source, 'relatedBugs') ?? []).flatMap((value) => {
+    if (!isJsonObject(value)) {
+      return [];
+    }
+
+    const id = readNumberField(value, 'id');
+    const title = readStringField(value, 'title');
+    const state = readStringField(value, 'state');
+    if (id === undefined || !title || !state) {
+      return [];
+    }
+
+    return [
+      {
+        id,
+        title,
+        state,
+        url: readStringField(value, 'url'),
+      },
+    ];
+  });
+}
+
 export function parseAzureWorkItemFields(source: JsonObject): AzureWorkItemFields {
   return {
     'System.Title': requireString(source, 'System.Title', 'Work item'),
@@ -105,8 +130,27 @@ export function parseAzureWorkItemFields(source: JsonObject): AzureWorkItemField
     ),
     'System.CreatedDate': readStringField(source, 'System.CreatedDate'),
     'System.ChangedDate': readStringField(source, 'System.ChangedDate'),
+    'Microsoft.VSTS.Common.ClosedDate': readStringField(
+      source,
+      'Microsoft.VSTS.Common.ClosedDate',
+    ),
+    'Microsoft.VSTS.Scheduling.DueDate': readStringField(
+      source,
+      'Microsoft.VSTS.Scheduling.DueDate',
+    ),
     'System.IterationLevel3': readStringField(source, 'System.IterationLevel3'),
+    'System.Tags': readStringField(source, 'System.Tags'),
+    'Microsoft.VSTS.CMMI.Blocked': readBlockedField(source),
   };
+}
+
+function readBlockedField(source: JsonObject): string | boolean | undefined {
+  const value = source['Microsoft.VSTS.CMMI.Blocked'];
+  if (typeof value === 'string' || typeof value === 'boolean') {
+    return value;
+  }
+
+  return undefined;
 }
 
 export function parseAzureWorkItem(payload: JsonValue): AzureWorkItem {
@@ -149,6 +193,7 @@ export function parseAzureWorkItem(payload: JsonValue): AzureWorkItem {
     deployed: payload.deployed === true,
     releasePrCreated: payload.releasePrCreated === true,
     pullRequests: parsePullRequests(payload),
+    relatedBugs: parseRelatedBugs(payload),
   };
 }
 

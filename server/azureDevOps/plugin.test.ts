@@ -37,7 +37,7 @@ describe('azure devops vite plugin', () => {
     res.setHeader = vi.fn();
     res.end = vi.fn();
 
-    middleware({ url: '/api/azure-devops/unknown', method: 'GET' }, res, next);
+    middleware({ url: '/api/azure-devops/unknown', method: 'GET', headers: {} }, res, next);
 
     await vi.waitFor(() => {
       expect(res.end).toHaveBeenCalled();

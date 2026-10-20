@@ -6,6 +6,7 @@ import { DeployedIndicator } from '@/components/DeployedIndicator/DeployedIndica
 import { ReleasePrIndicator } from '@/components/ReleasePrIndicator/ReleasePrIndicator.tsx';
 import styles from '@/components/WorkItem/WorkItemRow.module.css';
 import type { BugStatus, WorkItem } from '@/types/workItem.ts';
+import { isBlockedWorkItem } from '@/utils/resolveBoardStatus.ts';
 
 interface WorkItemRowProps {
   workItem: WorkItem;
@@ -26,8 +27,18 @@ export function WorkItemRow({
   onToggleSelect,
   onSelect,
 }: WorkItemRowProps) {
+  const blocked = isBlockedWorkItem(workItem);
+
   return (
-    <tr className={styles.row} aria-label={`Work item ${workItem.title}`}>
+    <tr
+      className={`${styles.row}${blocked ? ` ${styles.blocked}` : ''}`}
+      aria-label={
+        blocked
+          ? `Work item ${workItem.title} bloqueada`
+          : `Work item ${workItem.title}`
+      }
+      data-blocked={blocked ? 'true' : undefined}
+    >
       {leadMode ? (
         <td className={styles.select}>
           <Checkbox
@@ -77,7 +88,7 @@ export function WorkItemRow({
         </span>
       </td>
       <td className={styles.board}>
-        <BoardStatus column={workItem.boardColumn} />
+        <BoardStatus column={workItem.boardColumn} blocked={blocked} />
       </td>
       <td className={styles.releasePr}>
         <ReleasePrIndicator created={workItem.releasePrCreated} />

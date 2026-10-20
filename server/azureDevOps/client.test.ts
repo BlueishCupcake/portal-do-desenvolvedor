@@ -72,7 +72,8 @@ describe('azure devops rest client', () => {
       azureDevOpsRequest(config, 'https://dev.azure.com/other/_apis/foo'),
     ).rejects.toThrow('Unauthorized');
 
-    expect(readAzureErrorMessage({}, 401)).toMatch(/PAT/);
+    expect(readAzureErrorMessage({}, 401)).toMatch(/autenticar/);
+    expect(readAzureErrorMessage({}, 429)).toMatch(/limitou/);
     expect(readAzureErrorMessage({}, 500)).toMatch(/500/);
   });
 });

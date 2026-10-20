@@ -5,6 +5,7 @@ interface ImportMetaEnv {
   readonly VITE_AZURE_DEVOPS_ORGANIZATION?: string;
   readonly VITE_AZURE_DEVOPS_PROJECT?: string;
   readonly VITE_AZURE_DEVOPS_TEAM?: string;
+  readonly VITE_AZURE_DEVOPS_VDM_OBJECTIVE?: string;
   readonly VITE_AZURE_DEVOPS_MCP_URL?: string;
   readonly VITE_AZURE_DEVOPS_MCP_TOOL_CURRENT_USER?: string;
   readonly VITE_AZURE_DEVOPS_MCP_TOOL_CURRENT_SPRINT?: string;

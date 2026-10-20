@@ -4,6 +4,7 @@ import {
   mapAzureWorkItem,
   mapAzureWorkItemDetails,
 } from '@/mappers/azureDevOps/mapWorkItem.ts';
+import { parseMetricsDashboard } from '@/services/azureDevOps/metricsParser.ts';
 import {
   parseAzureDeveloper,
   parseAzureSprint,
@@ -22,6 +23,7 @@ import {
   readObjectField,
   readStringField,
 } from '@/utils/json.ts';
+import { readVdmObjective } from '@/utils/metrics/vdm.ts';
 
 export const AZURE_DEVOPS_API_BASE = '/api/azure-devops';
 
@@ -100,7 +102,11 @@ export function createRestAzureDevOpsService(): AzureDevOpsService {
     },
 
     async getUserWorkItems(sprintId, userId, options) {
-      const query = new URLSearchParams({ sprintId, userId });
+      const sprintIds = Array.isArray(sprintId) ? sprintId : [sprintId];
+      const query = new URLSearchParams({ userId });
+      for (const id of sprintIds) {
+        query.append('sprintId', id);
+      }
       if (options?.leadMode) {
         query.set('leadMode', 'true');
       }
@@ -118,6 +124,23 @@ export function createRestAzureDevOpsService(): AzureDevOpsService {
         workItem.fields['System.IterationPath'];
 
       return mapAzureWorkItemDetails(workItem, sprintName);
+    },
+
+    async getMetrics(query) {
+      const params = new URLSearchParams({
+        scope: query.scope,
+        period: query.period,
+      });
+      if (query.sprintId) {
+        params.set('sprintId', query.sprintId);
+      }
+
+      const payload = await readApi(`/metrics?${params.toString()}`);
+      return parseMetricsDashboard(payload, {
+        scope: query.scope,
+        period: query.period,
+        vdmObjective: readVdmObjective(),
+      });
     },
 
     async createDeployCard(input) {

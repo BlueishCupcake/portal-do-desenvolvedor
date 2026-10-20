@@ -61,6 +61,10 @@ export function readAzureErrorMessage(payload: unknown, status: number): string 
     return 'Não foi possível autenticar no Azure DevOps. Verifique o PAT.';
   }
 
+  if (status === 429) {
+    return 'O Azure DevOps limitou as consultas. Aguarde e tente novamente.';
+  }
+
   return `O Azure DevOps retornou o status ${String(status)}.`;
 }
 

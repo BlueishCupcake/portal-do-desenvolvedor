@@ -1,16 +1,21 @@
 .section {
+  position: relative;
+  z-index: 2;
   width: 100%;
+  overflow: visible;
 }
 
 .section > :first-child {
   width: 100%;
   max-width: none !important;
+  overflow: visible !important;
 }
 
 .content {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  overflow: visible;
 }
 
 .row {
@@ -18,16 +23,28 @@
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 0.75rem 1.5rem;
+  overflow: visible;
 }
 
 .selector {
+  position: relative;
+  z-index: 3;
   flex: 1 1 16rem;
   max-width: 28rem;
+  overflow: visible;
 }
 
-.points {
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin-left: auto;
+}
+
+.metric {
   margin: 0;
   padding-bottom: 0.35rem;
+  white-space: nowrap;
 }
 
 .period {

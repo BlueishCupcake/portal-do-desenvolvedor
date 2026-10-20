@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { AzureDevOpsProvider } from '@/app/providers/AzureDevOpsProvider.tsx';
 import { useCurrentSprint } from '@/hooks/useCurrentSprint.ts';
 import { useCurrentUser } from '@/hooks/useCurrentUser.ts';
+import { useMetrics } from '@/hooks/useMetrics.ts';
 import { usePipelines } from '@/hooks/usePipelines.ts';
 import { useSprints } from '@/hooks/useSprints.ts';
 import { useWorkItemDetails } from '@/hooks/useWorkItemDetails.ts';
@@ -36,12 +37,29 @@ describe('azure devops hooks', () => {
     const pipelines = renderHook(() => usePipelines(), { wrapper });
     const sprints = renderHook(() => useSprints(), { wrapper });
     const items = renderHook(
-      () => useWorkItems({ sprintId: 'sprint-42', userId: 'sophie-quines' }),
+      () =>
+        useWorkItems({
+          sprintIds: ['sprint-42', 'sprint-41'],
+          userId: 'sophie-quines',
+        }),
       { wrapper },
     );
     const details = renderHook(() => useWorkItemDetails(12345), { wrapper });
     const idleItems = renderHook(() => useWorkItems({}), { wrapper });
     const idleDetails = renderHook(() => useWorkItemDetails(null), { wrapper });
+    const metrics = renderHook(
+      () =>
+        useMetrics({
+          scope: 'personal',
+          period: 'current-sprint',
+          sprintId: 'sprint-42',
+        }),
+      { wrapper },
+    );
+    const idleMetrics = renderHook(
+      () => useMetrics({ scope: 'personal', period: 'current-sprint' }),
+      { wrapper },
+    );
 
     await waitFor(() => {
       expect(user.result.current.data?.displayName).toBe('Sophie Quines');
@@ -50,9 +68,11 @@ describe('azure devops hooks', () => {
       expect(pipelines.result.current.data?.length).toBeGreaterThan(0);
       expect(items.result.current.data?.length).toBeGreaterThan(0);
       expect(details.result.current.data?.id).toBe(12345);
+      expect(metrics.result.current.data?.metrics?.kpis.length).toBeGreaterThan(0);
     });
 
     expect(idleItems.result.current.fetchStatus).toBe('idle');
     expect(idleDetails.result.current.fetchStatus).toBe('idle');
+    expect(idleMetrics.result.current.fetchStatus).toBe('idle');
   });
 });

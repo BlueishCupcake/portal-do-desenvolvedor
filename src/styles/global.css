@@ -56,6 +56,14 @@ a {
   color: var(--color-ink-soft);
 }
 
+[data-theme='dark'] [role='tablist'] [role='tab']:not([data-selected='true']):not(:hover) {
+  color: #0f172a !important;
+}
+
+[data-theme='dark'] [role='tablist'] [role='tab'][data-selected='true'] {
+  color: #f8fafc !important;
+}
+
 [data-theme='dark'] .tag,
 [data-theme='dark'] .tag * {
   color: #111827 !important;

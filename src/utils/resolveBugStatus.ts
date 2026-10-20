@@ -8,7 +8,7 @@ export function isResolvedWorkItemState(state: string): boolean {
 }
 
 type BugStatusSource = Pick<WorkItem, 'type' | 'state'> &
-  Partial<Pick<WorkItem, 'id' | 'relatedIds'>>;
+  Partial<Pick<WorkItem, 'id' | 'relatedIds' | 'relatedBugs'>>;
 
 export function resolveBugStatus(
   workItem: BugStatusSource,
@@ -19,23 +19,28 @@ export function resolveBugStatus(
   }
 
   const relatedIds = new Set(workItem.relatedIds ?? []);
-  const relatedBugs = catalog.filter((item) => {
+  const catalogBugs = catalog.filter((item) => {
     if (item.type !== 'Bug') {
       return false;
     }
 
     return (
       relatedIds.has(item.id) ||
-      (workItem.id !== undefined &&
-        (item.relatedIds ?? []).includes(workItem.id))
+      (workItem.id !== undefined && (item.relatedIds ?? []).includes(workItem.id))
     );
   });
+  const relatedBugs = new Map<number, string>();
 
-  if (relatedBugs.length === 0) {
+  for (const bug of workItem.relatedBugs ?? []) {
+    relatedBugs.set(bug.id, bug.state);
+  }
+  for (const bug of catalogBugs) {
+    relatedBugs.set(bug.id, bug.state);
+  }
+
+  if (relatedBugs.size === 0) {
     return 'none';
   }
 
-  return relatedBugs.every((bug) => isResolvedWorkItemState(bug.state))
-    ? 'fixed'
-    : 'open';
+  return [...relatedBugs.values()].every(isResolvedWorkItemState) ? 'fixed' : 'open';
 }

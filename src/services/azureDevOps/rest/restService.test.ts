@@ -86,7 +86,34 @@ describe('createRestAzureDevOpsService', () => {
         };
       }
 
+      if (url.includes('/metrics?')) {
+        expect(url).toContain('scope=personal');
+        expect(url).toContain('period=current-sprint');
+        return {
+          ok: true,
+          json: async () => ({
+            generatedAt: '2026-10-06T12:00:00.000Z',
+            context: {
+              organization: 'contoso',
+              project: 'portal',
+              team: 'devs',
+              period: 'current-sprint',
+            },
+            workItems: [azureItem],
+            pullRequestCount: 2,
+            pipelineCount: 1,
+            sources: {
+              workItems: 'ok',
+              pullRequests: 'ok',
+              pipelines: 'ok',
+            },
+            errors: [],
+          }),
+        };
+      }
+
       if (url.includes('/work-items?')) {
+        expect(url).toContain('sprintId=');
         return {
           ok: true,
           json: async () => ({ value: [azureItem] }),
@@ -135,6 +162,16 @@ describe('createRestAzureDevOpsService', () => {
     ).resolves.toMatchObject([{ id: 88, title: 'Tarefa REST' }]);
     await expect(service.getWorkItemDetails(88)).resolves.toMatchObject({
       sprintName: 'Sprint 42',
+    });
+    await expect(
+      service.getMetrics({
+        scope: 'personal',
+        period: 'current-sprint',
+        sprintId: 'Portal\\Sprint 42',
+      }),
+    ).resolves.toMatchObject({
+      scope: 'personal',
+      sources: { workItems: 'ok', pullRequests: 'ok' },
     });
     await expect(
       service.createDeployCard({

@@ -1,11 +1,14 @@
 import type { Developer } from '@/types/developer.ts';
 import type { WorkItem } from '@/types/workItem.ts';
 
-type StoryPointUser = Pick<Developer, 'id' | 'displayName'> & {
+export type AssignedUser = Pick<Developer, 'id' | 'displayName'> & {
   email?: string;
 };
 
-function isAssignedToUser(item: WorkItem, user: StoryPointUser): boolean {
+export function isAssignedToUser(
+  item: WorkItem,
+  user: AssignedUser,
+): boolean {
   if (user.id && item.assignedToId && item.assignedToId === user.id) {
     return true;
   }
@@ -20,7 +23,7 @@ function isAssignedToUser(item: WorkItem, user: StoryPointUser): boolean {
 
 export function sumAssignedStoryPoints(
   workItems: readonly WorkItem[],
-  user?: string | StoryPointUser,
+  user?: string | AssignedUser,
 ): number {
   if (!user) {
     return 0;

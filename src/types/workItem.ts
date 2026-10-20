@@ -12,6 +12,13 @@ export interface WorkItemPullRequest {
   url?: string;
 }
 
+export interface RelatedBug {
+  id: number;
+  title: string;
+  state: string;
+  url?: string;
+}
+
 export interface WorkItem {
   id: number;
   title: string;
@@ -27,12 +34,16 @@ export interface WorkItem {
   priority?: number;
   createdAt?: string;
   updatedAt?: string;
+  closedAt?: string;
+  dueDate?: string;
   relatedIds?: number[];
   bugStatus?: BugStatus;
   deployed?: boolean;
   releasePrCreated?: boolean;
   storyPoints?: number;
   pullRequests?: WorkItemPullRequest[];
+  relatedBugs?: RelatedBug[];
+  blocked?: boolean;
 }
 
 export interface WorkItemDetails extends WorkItem {

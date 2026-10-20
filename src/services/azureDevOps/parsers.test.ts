@@ -23,6 +23,9 @@ describe('azure devops parsers', () => {
             'System.AssignedTo': 'Sophie',
             'System.IterationPath': 'Sprint 42',
             'Microsoft.VSTS.Scheduling.StoryPoints': 5,
+            'Microsoft.VSTS.CMMI.Blocked': 'Yes',
+            'Microsoft.VSTS.Common.ClosedDate': '2026-10-05',
+            'Microsoft.VSTS.Scheduling.DueDate': '2026-10-01',
           },
         },
       ],
@@ -30,6 +33,9 @@ describe('azure devops parsers', () => {
 
     expect(items[0]?.id).toBe(1);
     expect(items[0]?.fields['Microsoft.VSTS.Scheduling.StoryPoints']).toBe(5);
+    expect(items[0]?.fields['Microsoft.VSTS.CMMI.Blocked']).toBe('Yes');
+    expect(items[0]?.fields['Microsoft.VSTS.Common.ClosedDate']).toBe('2026-10-05');
+    expect(items[0]?.fields['Microsoft.VSTS.Scheduling.DueDate']).toBe('2026-10-01');
   });
 
   it('parses work item relations', () => {
@@ -58,10 +64,26 @@ describe('azure devops parsers', () => {
         ],
         deployed: true,
         releasePrCreated: true,
+        relatedBugs: [
+          {
+            id: 20,
+            title: 'Linked bug',
+            state: 'Closed',
+            url: 'https://dev.azure.com/items/20',
+          },
+        ],
       }),
     ).toMatchObject({
       deployed: true,
       releasePrCreated: true,
+      relatedBugs: [
+        {
+          id: 20,
+          title: 'Linked bug',
+          state: 'Closed',
+          url: 'https://dev.azure.com/items/20',
+        },
+      ],
       relations: [
         {
           rel: 'System.LinkTypes.Related',
