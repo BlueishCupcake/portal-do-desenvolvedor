@@ -119,7 +119,7 @@ describe('calculateScopeMetrics', () => {
       percent: 40,
       definition: expect.stringContaining('média'),
     });
-    expect(metrics.byType.find((item) => item.label === 'Task')?.count).toBe(3);
+    expect(metrics.byType.find((item) => item.label === 'Tarefa')?.count).toBe(3);
     expect(metrics.byAssignee?.find((item) => item.label === 'Alex Santos')?.count).toBe(
       1,
     );

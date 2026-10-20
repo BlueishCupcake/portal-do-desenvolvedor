@@ -41,10 +41,10 @@ describe('WorkItemDetails', () => {
       screen.getByRole('heading', { name: 'Implementar filtro por disciplina' }),
     ).toBeInTheDocument();
     expect(screen.getByText('#123')).toBeInTheDocument();
-    expect(screen.getByText('Release PR')).toBeInTheDocument();
-    expect(screen.getByLabelText('Release PR: not created')).toBeInTheDocument();
-    expect(screen.getByText('Deployed')).toBeInTheDocument();
-    expect(screen.getByLabelText('Deployed: No')).toBeInTheDocument();
+    expect(screen.getByText('PR de release')).toBeInTheDocument();
+    expect(screen.getByLabelText('PR de release: Não criada')).toBeInTheDocument();
+    expect(screen.getByText('Implantado')).toBeInTheDocument();
+    expect(screen.getByLabelText('Implantado: Não')).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: 'Abrir no Azure DevOps' }),
     ).toHaveAttribute('href', 'https://dev.azure.com/item/123');

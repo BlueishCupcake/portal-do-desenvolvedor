@@ -10,9 +10,9 @@ export function TodosBoard() {
   const { todos, addTodo, updateTodo, removeTodo } = useTodos();
 
   return (
-    <section className={styles.board} aria-label="To Do's">
+    <section className={styles.board} aria-label="Anotações">
       <div className={styles.toolbar}>
-        <TitleV2 variant="h2">To Do&apos;s</TitleV2>
+        <TitleV2 variant="h2">Anotações</TitleV2>
         <Button type="button" color="primary" onClick={addTodo}>
           Novo post-it
         </Button>
@@ -20,7 +20,7 @@ export function TodosBoard() {
       {todos.length === 0 ? (
         <EmptyState
           title="Nenhum post-it ainda"
-          message="Crie um post-it para anotar to-dos da sprint."
+          message="Crie um post-it para anotar pendências da sprint."
         />
       ) : (
         <ul className={styles.grid}>
@@ -51,7 +51,7 @@ export function TodosBoard() {
                 <textarea
                   className={styles.text}
                   value={note.text}
-                  placeholder="Escreva um to-do..."
+                  placeholder="Escreva uma anotação..."
                   aria-label={`Texto do post-it ${String(index + 1)}`}
                   onChange={(event) => {
                     updateTodo(note.id, event.target.value);

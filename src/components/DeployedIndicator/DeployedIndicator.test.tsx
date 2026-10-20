@@ -7,14 +7,14 @@ describe('DeployedIndicator', () => {
   it('shows Yes when the work item is deployed', () => {
     render(<DeployedIndicator deployed />);
 
-    expect(screen.getByLabelText('Deployed: Yes')).toBeInTheDocument();
-    expect(screen.getByText('Yes')).toBeInTheDocument();
+    expect(screen.getByLabelText('Implantado: Sim')).toBeInTheDocument();
+    expect(screen.getByText('Sim')).toBeInTheDocument();
   });
 
   it('shows No when the work item is not deployed', () => {
     render(<DeployedIndicator />);
 
-    expect(screen.getByLabelText('Deployed: No')).toBeInTheDocument();
-    expect(screen.getByText('No')).toBeInTheDocument();
+    expect(screen.getByLabelText('Implantado: Não')).toBeInTheDocument();
+    expect(screen.getByText('Não')).toBeInTheDocument();
   });
 });

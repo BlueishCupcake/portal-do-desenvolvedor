@@ -7,14 +7,14 @@ describe('ReleasePrIndicator', () => {
   it('shows created when a release pull request exists', () => {
     render(<ReleasePrIndicator created />);
 
-    expect(screen.getByLabelText('Release PR: created')).toBeInTheDocument();
-    expect(screen.getByText('created')).toBeInTheDocument();
+    expect(screen.getByLabelText('PR de release: Criada')).toBeInTheDocument();
+    expect(screen.getByText('Criada')).toBeInTheDocument();
   });
 
   it('shows not created when there is no release pull request', () => {
     render(<ReleasePrIndicator />);
 
-    expect(screen.getByLabelText('Release PR: not created')).toBeInTheDocument();
-    expect(screen.getByText('not created')).toBeInTheDocument();
+    expect(screen.getByLabelText('PR de release: Não criada')).toBeInTheDocument();
+    expect(screen.getByText('Não criada')).toBeInTheDocument();
   });
 });

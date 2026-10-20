@@ -45,7 +45,7 @@ describe('WorkItemRow', () => {
       }),
     );
 
-    expect(screen.getByLabelText('Bugs fixed')).toBeInTheDocument();
+    expect(screen.getByLabelText('Bugs corrigidos')).toBeInTheDocument();
   });
 
   it('calls onSelect when the title is clicked', async () => {
@@ -68,16 +68,16 @@ describe('WorkItemRow', () => {
       }),
     );
 
-    expect(screen.getByText('#123 · Task · Active')).toBeInTheDocument();
-    expect(screen.getByLabelText('Sem story points')).toBeInTheDocument();
-    expect(screen.getByLabelText('Deployed: No')).toBeInTheDocument();
-    expect(screen.getByLabelText('Release PR: not created')).toBeInTheDocument();
+    expect(screen.getByText('#123 · Tarefa · Active')).toBeInTheDocument();
+    expect(screen.getByLabelText('Sem pontos')).toBeInTheDocument();
+    expect(screen.getByLabelText('Implantado: Não')).toBeInTheDocument();
+    expect(screen.getByLabelText('PR de release: Não criada')).toBeInTheDocument();
   });
 
   it('shows the story points before the board column', () => {
     renderRow(createWorkItem({ storyPoints: 4 }));
 
-    expect(screen.getByLabelText('Story points: 4')).toBeInTheDocument();
+    expect(screen.getByLabelText('Pontos: 4')).toBeInTheDocument();
     expect(screen.getByText('4')).toBeInTheDocument();
   });
 
@@ -91,15 +91,15 @@ describe('WorkItemRow', () => {
     );
 
     expect(
-      screen.getByLabelText('Work item Tarefa bloqueada bloqueada'),
+      screen.getByLabelText('Item de trabalho Tarefa bloqueada bloqueado'),
     ).toHaveAttribute('data-blocked', 'true');
-    expect(screen.getByText('Blocked')).toBeInTheDocument();
+    expect(screen.getByText('Bloqueado')).toBeInTheDocument();
   });
 
   it('highlights blocked work items in red', () => {
     renderRow(createWorkItem({ title: 'Tarefa bloqueada', boardColumn: 'Blocked' }));
 
-    expect(screen.getByLabelText('Work item Tarefa bloqueada bloqueada')).toHaveAttribute(
+    expect(screen.getByLabelText('Item de trabalho Tarefa bloqueada bloqueado')).toHaveAttribute(
       'data-blocked',
       'true',
     );
@@ -108,7 +108,7 @@ describe('WorkItemRow', () => {
   it('shows the deployed column when a main pull request exists', () => {
     renderRow(createWorkItem({ deployed: true }));
 
-    expect(screen.getByLabelText('Deployed: Yes')).toBeInTheDocument();
+    expect(screen.getByLabelText('Implantado: Sim')).toBeInTheDocument();
   });
 
   it('shows the assignee in lead mode', () => {

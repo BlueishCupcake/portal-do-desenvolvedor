@@ -1,6 +1,7 @@
 import { Links, Text } from '@poliedro/tamentai/web';
 
 import styles from '@/components/Metrics/MetricsTable.module.css';
+import { formatWorkItemType } from '@/constants/workItem.ts';
 import type { MetricWorkItemRow } from '@/types/metrics.ts';
 import { formatDate } from '@/utils/formatDate.ts';
 
@@ -17,16 +18,16 @@ export function MetricsTable({ items }: MetricsTableProps) {
     <div className={styles.tableWrap}>
       <table className={styles.table}>
         <caption className={styles.caption}>
-          <Text variant="label">Work item details</Text>
+          <Text variant="label">Detalhes dos itens de trabalho</Text>
         </caption>
         <thead>
           <tr>
             <th scope="col">ID</th>
-            <th scope="col">Title</th>
-            <th scope="col">Type</th>
-            <th scope="col">State</th>
-            <th scope="col">Assigned To</th>
-            <th scope="col">Updated</th>
+            <th scope="col">Título</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Responsável</th>
+            <th scope="col">Atualizado</th>
           </tr>
         </thead>
         <tbody>
@@ -42,7 +43,7 @@ export function MetricsTable({ items }: MetricsTableProps) {
                 )}
               </td>
               <td>{item.title}</td>
-              <td>{item.type}</td>
+              <td>{formatWorkItemType(item.type)}</td>
               <td>{item.state}</td>
               <td>{item.assignedTo}</td>
               <td>{item.updatedAt ? formatDate(item.updatedAt) : '—'}</td>

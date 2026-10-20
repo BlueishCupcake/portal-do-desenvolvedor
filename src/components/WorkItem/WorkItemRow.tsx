@@ -5,6 +5,7 @@ import { BugIndicator } from '@/components/BugIndicator/BugIndicator.tsx';
 import { DeployedIndicator } from '@/components/DeployedIndicator/DeployedIndicator.tsx';
 import { ReleasePrIndicator } from '@/components/ReleasePrIndicator/ReleasePrIndicator.tsx';
 import styles from '@/components/WorkItem/WorkItemRow.module.css';
+import { formatWorkItemType } from '@/constants/workItem.ts';
 import type { BugStatus, WorkItem } from '@/types/workItem.ts';
 import { isBlockedWorkItem } from '@/utils/resolveBoardStatus.ts';
 
@@ -34,8 +35,8 @@ export function WorkItemRow({
       className={`${styles.row}${blocked ? ` ${styles.blocked}` : ''}`}
       aria-label={
         blocked
-          ? `Work item ${workItem.title} bloqueada`
-          : `Work item ${workItem.title}`
+          ? `Item de trabalho ${workItem.title} bloqueado`
+          : `Item de trabalho ${workItem.title}`
       }
       data-blocked={blocked ? 'true' : undefined}
     >
@@ -70,7 +71,7 @@ export function WorkItemRow({
           {workItem.title}
         </Button>
         <Text variant="caption" color="muted">
-          #{workItem.id} · {workItem.type} · {workItem.state}
+          #{workItem.id} · {formatWorkItemType(workItem.type)} · {workItem.state}
         </Text>
       </td>
       {leadMode ? (
@@ -80,8 +81,8 @@ export function WorkItemRow({
         <span
           aria-label={
             workItem.storyPoints === undefined
-              ? 'Sem story points'
-              : `Story points: ${String(workItem.storyPoints)}`
+              ? 'Sem pontos'
+              : `Pontos: ${String(workItem.storyPoints)}`
           }
         >
           <Text as="span">{workItem.storyPoints ?? '—'}</Text>

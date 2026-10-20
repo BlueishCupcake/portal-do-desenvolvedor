@@ -25,11 +25,11 @@ function targetsMain(pullRequest: WorkItemPullRequest): boolean {
 function workItemTypeLabel(item: WorkItem): string {
   const labels: Record<WorkItem['type'], string> = {
     Bug: 'BUG',
-    Feature: 'FEATURE',
+    Feature: 'FUNCIONALIDADE',
     Other: 'ITEM',
-    'Product Backlog Item': 'PRODUCT BACKLOG ITEM',
+    'Product Backlog Item': 'ITEM DO BACKLOG',
     Task: 'TAREFA',
-    'User Story': 'USER STORY',
+    'User Story': 'HISTÓRIA DE USUÁRIO',
   };
 
   return labels[item.type];
@@ -108,7 +108,7 @@ export function buildDeployCardDescription(
     }
   }
 
-  lines.push('', 'Stories/Features:');
+  lines.push('', 'Histórias/Funcionalidades:');
   lines.push(
     ...storiesAndFeatures.map((item) => {
       const label = `${workItemTypeLabel(item)} ${String(item.id)}: ${item.title}`;

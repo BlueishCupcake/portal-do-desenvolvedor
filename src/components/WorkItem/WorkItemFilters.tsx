@@ -52,10 +52,10 @@ export function WorkItemFilters({
       </ButtonGroup>
       <div className={styles.selects}>
         <Select
-          label="Status do item"
+          label="Estado do item"
           value={state}
           options={[
-            { value: 'all', label: 'Todos os status' },
+            { value: 'all', label: 'Todos os estados' },
             ...states.map((item) => ({ value: item, label: item })),
           ]}
           onValueChange={(value) => {
@@ -65,10 +65,10 @@ export function WorkItemFilters({
           }}
         />
         <Select
-          label="Coluna do board"
+          label="Coluna do quadro"
           value={boardColumn}
           options={[
-            { value: 'all', label: 'Todas as colunas do board' },
+            { value: 'all', label: 'Todas as colunas do quadro' },
             ...boardColumns.map((item) => ({ value: item, label: item })),
           ]}
           onValueChange={(value) => {

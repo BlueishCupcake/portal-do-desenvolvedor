@@ -18,13 +18,13 @@ describe('MetricsBoard', () => {
   it('renders personal KPIs, context and the work item table', async () => {
     renderWithProviders(<MetricsBoard />);
 
-    expect(await screen.findByRole('heading', { name: 'Metrics' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Métricas' })).toBeInTheDocument();
     expect(
       await screen.findByRole('button', { name: /Atribuídos a mim: 7/ }),
     ).toBeInTheDocument();
     expect(screen.getByText(/Projeto: portal/)).toBeInTheDocument();
     expect(screen.getByText(/Time: devs/)).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'My Metrics' })).toHaveAttribute(
+    expect(screen.getByRole('tab', { name: 'Minhas métricas' })).toHaveAttribute(
       'aria-selected',
       'true',
     );
@@ -32,7 +32,7 @@ describe('MetricsBoard', () => {
     expect(screen.getByRole('button', { name: /Bugs: 2/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /PRs: 3/ })).toBeInTheDocument();
     expect(
-      screen.getByLabelText('VDM Objective 7 / Current closed cards: 2'),
+      screen.getByLabelText('Objetivo VDM 7 / Cards fechados no mês: 2'),
     ).toBeInTheDocument();
     expect(
       screen.getByText(/Tendências históricas exigem Azure DevOps Analytics/),
@@ -57,7 +57,7 @@ describe('MetricsBoard', () => {
     const user = userEvent.setup();
     renderWithProviders(<MetricsBoard />);
 
-    await user.click(await screen.findByRole('tab', { name: 'Team Metrics' }));
+    await user.click(await screen.findByRole('tab', { name: 'Métricas do time' }));
 
     expect(
       await screen.findByRole('button', { name: /Sem responsável: 1/ }),
@@ -65,8 +65,8 @@ describe('MetricsBoard', () => {
     expect(screen.getByLabelText(/Progresso da sprint/)).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /Atribuídos a mim/ })).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('tab', { name: 'Project Metrics' }));
-    expect(await screen.findByRole('tab', { name: 'Project Metrics' })).toHaveAttribute(
+    await user.click(screen.getByRole('tab', { name: 'Métricas do projeto' }));
+    expect(await screen.findByRole('tab', { name: 'Métricas do projeto' })).toHaveAttribute(
       'aria-selected',
       'true',
     );
@@ -81,9 +81,9 @@ describe('MetricsBoard', () => {
     document.documentElement.setAttribute('data-theme', 'dark');
     renderWithProviders(<MetricsBoard />);
 
-    expect(await screen.findByRole('tab', { name: 'My Metrics' })).toBeVisible();
-    expect(screen.getByRole('tab', { name: 'Team Metrics' })).toBeVisible();
-    expect(screen.getByRole('tab', { name: 'Project Metrics' })).toBeVisible();
+    expect(await screen.findByRole('tab', { name: 'Minhas métricas' })).toBeVisible();
+    expect(screen.getByRole('tab', { name: 'Métricas do time' })).toBeVisible();
+    expect(screen.getByRole('tab', { name: 'Métricas do projeto' })).toBeVisible();
   });
 
   it('shows partial data without converting failed sources into zeros', async () => {
@@ -106,7 +106,7 @@ describe('MetricsBoard', () => {
       service: createMockAzureDevOpsService({ delayMs: 0, workItems: [] }),
     });
 
-    expect(await screen.findByText('Nenhum work item encontrado')).toBeInTheDocument();
+    expect(await screen.findByText('Nenhum item de trabalho encontrado')).toBeInTheDocument();
   });
 
   it('shows an error state and retries', async () => {

@@ -112,7 +112,7 @@ export function PipelinesBoard({
               <tr>
                 <th scope="col">Pipeline</th>
                 <th className={styles.status} scope="col">
-                  Status
+                  Estado
                 </th>
                 <th scope="col">Branch</th>
                 <th className={styles.time} scope="col">

@@ -20,15 +20,15 @@ describe('WorkItemBoard', () => {
     expect(screen.getByText('Task A')).toBeInTheDocument();
     expect(screen.getByText('Task B')).toBeInTheDocument();
     expect(screen.getByLabelText('Bug')).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: 'Points' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Pontos' })).toBeInTheDocument();
     expect(
-      screen.getByRole('columnheader', { name: 'Release PR' }),
+      screen.getByRole('columnheader', { name: 'PR de release' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('columnheader', { name: 'Deployed' }),
+      screen.getByRole('columnheader', { name: 'Implantado' }),
     ).toBeInTheDocument();
-    expect(screen.getAllByLabelText('Deployed: No').length).toBe(2);
-    expect(screen.getAllByLabelText('Release PR: not created').length).toBe(2);
+    expect(screen.getAllByLabelText('Implantado: Não').length).toBe(2);
+    expect(screen.getAllByLabelText('PR de release: Não criada').length).toBe(2);
   });
 
   it('shows assignees in lead mode', () => {
@@ -50,7 +50,7 @@ describe('WorkItemBoard', () => {
       screen.getByLabelText('Selecionar todas as tarefas visíveis'),
     ).toBeEnabled();
     expect(
-      screen.queryByRole('button', { name: 'Request PR creation' }),
+      screen.queryByRole('button', { name: 'Solicitar criação de PR' }),
     ).not.toBeInTheDocument();
   });
 
@@ -81,13 +81,13 @@ describe('WorkItemBoard', () => {
     await user.click(screen.getByLabelText('Selecionar Task A'));
 
     expect(
-      screen.getByRole('button', { name: 'Request PR creation' }),
+      screen.getByRole('button', { name: 'Solicitar criação de PR' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('button', { name: 'Create deploy card' }),
+      screen.getByRole('button', { name: 'Criar cartão de deploy' }),
     ).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Request PR creation' }));
+    await user.click(screen.getByRole('button', { name: 'Solicitar criação de PR' }));
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '#1 — Task A' })).toHaveAttribute(
@@ -144,9 +144,9 @@ describe('WorkItemBoard', () => {
     await user.click(screen.getByLabelText('Selecionar Task B'));
 
     expect(
-      screen.queryByRole('button', { name: 'Request PR creation' }),
+      screen.queryByRole('button', { name: 'Solicitar criação de PR' }),
     ).not.toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Create deploy card' }));
+    await user.click(screen.getByRole('button', { name: 'Criar cartão de deploy' }));
     await user.type(
       screen.getByRole('textbox', { name: 'Título' }),
       'Deploy Sprint 42',
@@ -199,7 +199,7 @@ describe('WorkItemBoard', () => {
         onSelect={vi.fn()}
       />,
     );
-    expect(screen.getByRole('button', { name: 'Create deploy card' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Criar cartão de deploy' })).toBeVisible();
 
     rerender(
       <WorkItemBoard
@@ -229,8 +229,8 @@ describe('WorkItemBoard', () => {
       <WorkItemBoard workItems={[task]} catalog={[task, bug]} onSelect={vi.fn()} />,
     );
 
-    expect(screen.getByLabelText('Bugs fixed')).toBeInTheDocument();
-    expect(screen.getByText('Bugs fixed')).toBeInTheDocument();
+    expect(screen.getByLabelText('Bugs corrigidos')).toBeInTheDocument();
+    expect(screen.getByText('Bugs corrigidos')).toBeInTheDocument();
   });
 
   it('shows an open bug linked outside the sprint catalog', () => {

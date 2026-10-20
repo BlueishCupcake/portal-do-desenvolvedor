@@ -34,9 +34,9 @@ export function BoardStatus({ column, blocked = false }: BoardStatusProps) {
       shape="pilled"
       data-tag="board"
       data-status={status.token}
-      title={blocked ? `Blocked · ${column}` : column}
+      title={blocked ? `Bloqueado · ${column}` : column}
     >
-      {blocked ? 'Blocked' : column}
+      {blocked ? 'Bloqueado' : column}
     </Badge>
   );
 }

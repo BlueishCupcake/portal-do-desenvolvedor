@@ -217,7 +217,7 @@ function workItemWebUrl(
 
 function withWebUrl(config: AzureDevOpsServerConfig, item: unknown): JsonRecord {
   if (!isRecord(item)) {
-    throw new Error('Work item inválido retornado pelo Azure DevOps.');
+    throw new Error('Item de trabalho inválido retornado pelo Azure DevOps.');
   }
 
   return {
@@ -421,7 +421,7 @@ async function fetchWorkItemsByIds(
     );
 
     if (!isRecord(payload) || !Array.isArray(payload.value)) {
-      throw new Error('Lista de work items inválida.');
+      throw new Error('Lista de itens de trabalho inválida.');
     }
 
     for (const item of payload.value) {

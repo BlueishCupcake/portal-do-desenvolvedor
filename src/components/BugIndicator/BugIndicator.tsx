@@ -21,10 +21,10 @@ export function BugIndicator({ type, state, status }: BugIndicatorProps) {
         size="sm"
         shape="pilled"
         data-tag="fixed"
-        title="Bugs fixed"
-        aria-label="Bugs fixed"
+        title="Bugs corrigidos"
+        aria-label="Bugs corrigidos"
       >
-        Bugs fixed
+        Bugs corrigidos
       </Badge>
     );
   }

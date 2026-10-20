@@ -12,7 +12,7 @@ const labels = {
   cancelling: 'Cancelando',
   postponed: 'Adiada',
   completed: 'Concluída',
-  none: 'Sem status',
+  none: 'Sem estado',
   succeeded: 'Sucesso',
   partiallySucceeded: 'Sucesso parcial',
   failed: 'Falhou',

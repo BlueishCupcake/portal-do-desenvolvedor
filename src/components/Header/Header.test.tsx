@@ -63,11 +63,11 @@ describe('Header', () => {
       displayName: 'Sophie Quines',
     });
 
-    const tasksTab = screen.getByRole('tab', { name: 'Tasks' });
-    const todosTab = screen.getByRole('tab', { name: "To Do's" });
+    const tasksTab = screen.getByRole('tab', { name: 'Tarefas' });
+    const todosTab = screen.getByRole('tab', { name: 'Anotações' });
     const pipelinesTab = screen.getByRole('tab', { name: 'Pipelines' });
-    const metricsTab = screen.getByRole('tab', { name: 'Metrics' });
-    const leadMode = screen.getByRole('button', { name: 'Ativar Lead Mode' });
+    const metricsTab = screen.getByRole('tab', { name: 'Métricas' });
+    const leadMode = screen.getByRole('button', { name: 'Ativar Modo Lead' });
     expect(tasksTab.compareDocumentPosition(leadMode)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(todosTab.compareDocumentPosition(leadMode)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(pipelinesTab.compareDocumentPosition(metricsTab)).toBe(
@@ -82,7 +82,7 @@ describe('Header', () => {
 
     await user.click(leadMode);
 
-    expect(screen.getByRole('button', { name: 'Desativar Lead Mode' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: 'Desativar Modo Lead' })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
@@ -92,12 +92,12 @@ describe('Header', () => {
     const user = userEvent.setup();
     renderHeader();
 
-    expect(screen.getByRole('tab', { name: 'Tasks' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: 'Tarefas' })).toHaveAttribute('aria-selected', 'true');
 
-    await user.click(screen.getByRole('tab', { name: "To Do's" }));
+    await user.click(screen.getByRole('tab', { name: 'Anotações' }));
 
-    expect(screen.getByRole('tab', { name: "To Do's" })).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('tab', { name: 'Tasks' })).toHaveAttribute('aria-selected', 'false');
+    expect(screen.getByRole('tab', { name: 'Anotações' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: 'Tarefas' })).toHaveAttribute('aria-selected', 'false');
 
     await user.click(screen.getByRole('tab', { name: 'Pipelines' }));
 
@@ -106,9 +106,9 @@ describe('Header', () => {
       'true',
     );
 
-    await user.click(screen.getByRole('tab', { name: 'Metrics' }));
+    await user.click(screen.getByRole('tab', { name: 'Métricas' }));
 
-    expect(screen.getByRole('tab', { name: 'Metrics' })).toHaveAttribute(
+    expect(screen.getByRole('tab', { name: 'Métricas' })).toHaveAttribute(
       'aria-selected',
       'true',
     );

@@ -133,7 +133,7 @@ describe('azure devops mappers', () => {
           'System.IterationPath': 'Sprint 42',
         },
       }).boardColumn,
-    ).toBe('Sem coluna do board');
+    ).toBe('Sem coluna do quadro');
 
     expect(
       mapAzureSprint({

@@ -105,15 +105,15 @@ function parseRelatedBugs(source: JsonObject): AzureRelatedBug[] {
 
 export function parseAzureWorkItemFields(source: JsonObject): AzureWorkItemFields {
   return {
-    'System.Title': requireString(source, 'System.Title', 'Work item'),
-    'System.WorkItemType': requireString(source, 'System.WorkItemType', 'Work item'),
-    'System.State': requireString(source, 'System.State', 'Work item'),
+    'System.Title': requireString(source, 'System.Title', 'Item de trabalho'),
+    'System.WorkItemType': requireString(source, 'System.WorkItemType', 'Item de trabalho'),
+    'System.State': requireString(source, 'System.State', 'Item de trabalho'),
     'System.AssignedTo': readAssignedTo(source),
     'System.BoardColumn': readStringField(source, 'System.BoardColumn'),
     'System.IterationPath': requireString(
       source,
       'System.IterationPath',
-      'Work item',
+      'Item de trabalho',
     ),
     'System.Description': readStringField(source, 'System.Description'),
     'Microsoft.VSTS.Common.Priority': readNumberField(
@@ -155,14 +155,14 @@ function readBlockedField(source: JsonObject): string | boolean | undefined {
 
 export function parseAzureWorkItem(payload: JsonValue): AzureWorkItem {
   if (!isJsonObject(payload)) {
-    throw new AzureDevOpsError('Work item inválido retornado pelo Azure DevOps.');
+    throw new AzureDevOpsError('Item de trabalho inválido retornado pelo Azure DevOps.');
   }
 
   const id = readNumberField(payload, 'id');
   const fields = readObjectField(payload, 'fields');
 
   if (id === undefined || !fields) {
-    throw new AzureDevOpsError('Work item inválido: id ou fields ausente.');
+    throw new AzureDevOpsError('Item de trabalho inválido: id ou fields ausente.');
   }
 
   const links = readObjectField(payload, '_links');
@@ -203,12 +203,12 @@ export function parseAzureWorkItemList(payload: JsonValue): AzureWorkItem[] {
   }
 
   if (!isJsonObject(payload)) {
-    throw new AzureDevOpsError('Lista de work items inválida.');
+    throw new AzureDevOpsError('Lista de itens de trabalho inválida.');
   }
 
   const values = readArrayField(payload, 'value');
   if (!values) {
-    throw new AzureDevOpsError('Lista de work items inválida.');
+    throw new AzureDevOpsError('Lista de itens de trabalho inválida.');
   }
 
   return values.map((item) => parseAzureWorkItem(item));

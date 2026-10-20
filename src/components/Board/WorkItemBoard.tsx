@@ -83,7 +83,7 @@ export function WorkItemBoard({
   }
 
   return (
-    <section className={styles.section} aria-label="Work items da Sprint">
+    <section className={styles.section} aria-label="Itens de trabalho da Sprint">
       <div className={styles.tableWrap}>
         <table className={styles.table}>
           <thead>
@@ -111,16 +111,16 @@ export function WorkItemBoard({
               <th scope="col">Tarefa</th>
               {leadMode ? <th scope="col">Responsável</th> : null}
               <th className={styles.points} scope="col">
-                Points
+                Pontos
               </th>
               <th className={styles.board} scope="col">
-                Board
+                Quadro
               </th>
               <th className={styles.releasePr} scope="col">
-                Release PR
+                PR de release
               </th>
               <th className={styles.deployed} scope="col">
-                Deployed
+                Implantado
               </th>
             </tr>
           </thead>
@@ -150,7 +150,7 @@ export function WorkItemBoard({
                 setIsRequestOpen(true);
               }}
             >
-              Request PR creation
+              Solicitar criação de PR
             </Button>
           ) : null}
           {canCreateDeployCard ? (
@@ -161,7 +161,7 @@ export function WorkItemBoard({
                 setIsDeployOpen(true);
               }}
             >
-              Create deploy card
+              Criar cartão de deploy
             </Button>
           ) : null}
         </div>

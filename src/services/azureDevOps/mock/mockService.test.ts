@@ -95,7 +95,9 @@ describe('createMockAzureDevOpsService', () => {
 
     await expect(failing.getCurrentUser()).rejects.toThrow('usuário atual');
     await expect(failing.getCurrentSprint()).rejects.toThrow('Sprint atual');
-    await expect(failing.getUserWorkItems('s', 'u')).rejects.toThrow('work items');
+    await expect(failing.getUserWorkItems('s', 'u')).rejects.toThrow(
+      'itens de trabalho da Sprint',
+    );
     await expect(failing.getWorkItemDetails(1)).rejects.toThrow('detalhes');
     await expect(
       failing.getMetrics({ scope: 'personal', period: 'current-sprint' }),

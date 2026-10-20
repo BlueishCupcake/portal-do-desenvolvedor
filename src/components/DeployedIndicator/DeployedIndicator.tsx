@@ -5,7 +5,7 @@ interface DeployedIndicatorProps {
 }
 
 export function DeployedIndicator({ deployed = false }: DeployedIndicatorProps) {
-  const label = deployed ? 'Yes' : 'No';
+  const label = deployed ? 'Sim' : 'Não';
 
   return (
     <Badge
@@ -15,8 +15,8 @@ export function DeployedIndicator({ deployed = false }: DeployedIndicatorProps) 
       size="sm"
       shape="pilled"
       data-tag={deployed ? 'deployed-yes' : 'deployed-no'}
-      title={`Deployed: ${label}`}
-      aria-label={`Deployed: ${label}`}
+      title={`Implantado: ${label}`}
+      aria-label={`Implantado: ${label}`}
     >
       {label}
     </Badge>

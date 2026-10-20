@@ -6,6 +6,7 @@ import { ErrorState } from '@/components/ErrorState/ErrorState.tsx';
 import { DashboardSkeleton } from '@/components/Loading/DashboardSkeleton.tsx';
 import { ReleasePrIndicator } from '@/components/ReleasePrIndicator/ReleasePrIndicator.tsx';
 import styles from '@/components/WorkItemDetails/WorkItemDetails.module.css';
+import { formatWorkItemType } from '@/constants/workItem.ts';
 import type { WorkItemDetails as WorkItemDetailsModel } from '@/types/workItem.ts';
 import { formatDate } from '@/utils/formatDate.ts';
 
@@ -30,7 +31,7 @@ export function WorkItemDetails({
     <Drawer
       open={isOpen}
       onClose={onClose}
-      title={details?.title ?? 'Detalhes do work item'}
+      title={details?.title ?? 'Detalhes do item de trabalho'}
       size="md"
       position="right"
       closeButtonLabel="Fechar"
@@ -67,7 +68,7 @@ export function WorkItemDetails({
                   Tipo
                 </Text>
               </dt>
-              <dd>{details.type}</dd>
+              <dd>{formatWorkItemType(details.type)}</dd>
             </div>
             <div>
               <dt>
@@ -88,7 +89,7 @@ export function WorkItemDetails({
             <div>
               <dt>
                 <Text variant="caption" color="muted">
-                  Status
+                  Estado
                 </Text>
               </dt>
               <dd>{details.state}</dd>
@@ -96,7 +97,7 @@ export function WorkItemDetails({
             <div>
               <dt>
                 <Text variant="caption" color="muted">
-                  Board
+                  Quadro
                 </Text>
               </dt>
               <dd>
@@ -106,7 +107,7 @@ export function WorkItemDetails({
             <div>
               <dt>
                 <Text variant="caption" color="muted">
-                  Release PR
+                  PR de release
                 </Text>
               </dt>
               <dd>
@@ -116,7 +117,7 @@ export function WorkItemDetails({
             <div>
               <dt>
                 <Text variant="caption" color="muted">
-                  Deployed
+                  Implantado
                 </Text>
               </dt>
               <dd>

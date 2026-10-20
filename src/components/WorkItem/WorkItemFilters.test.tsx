@@ -21,7 +21,7 @@ describe('WorkItemFilters', () => {
 
     expect(screen.getByRole('button', { name: 'Bugs' })).toBeInTheDocument();
     expect(
-      screen.getByRole('combobox', { name: 'Coluna do board' }),
+      screen.getByRole('combobox', { name: 'Coluna do quadro' }),
     ).toBeInTheDocument();
   });
 
@@ -44,9 +44,9 @@ describe('WorkItemFilters', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', { name: 'Tasks' }));
-    await user.selectOptions(screen.getByLabelText('Status do item'), 'Active');
-    await user.selectOptions(screen.getByLabelText('Coluna do board'), 'Ag. QA');
+    await user.click(screen.getByRole('button', { name: 'Tarefas' }));
+    await user.selectOptions(screen.getByLabelText('Estado do item'), 'Active');
+    await user.selectOptions(screen.getByLabelText('Coluna do quadro'), 'Ag. QA');
 
     expect(onTypeChange).toHaveBeenCalledWith('Task');
     expect(onStateChange).toHaveBeenCalledWith('Active');

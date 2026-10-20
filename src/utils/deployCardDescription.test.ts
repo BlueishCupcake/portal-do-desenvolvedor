@@ -64,10 +64,10 @@ api / novo-banco-questoes
 batch-versioning-service / lote-banco-questoes
 [(Main) (!124308)](https://dev.azure.com/pullrequest/124308)
 
-Stories/Features:
-[FEATURE 100591: [Versionamento] Suporte a versões](https://dev.azure.com/items/100591)
+Histórias/Funcionalidades:
+[FUNCIONALIDADE 100591: [Versionamento] Suporte a versões](https://dev.azure.com/items/100591)
 TAREFA 61407: Ajustar retornos da API
-[USER STORY 103810: Implementar Batch-Versioning-Service](https://dev.azure.com/items/103810)`);
+[HISTÓRIA DE USUÁRIO 103810: Implementar Batch-Versioning-Service](https://dev.azure.com/items/103810)`);
   });
 
   it('explains when selected tasks have no pull requests', () => {

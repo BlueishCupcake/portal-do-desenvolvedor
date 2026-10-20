@@ -5,7 +5,7 @@ interface ReleasePrIndicatorProps {
 }
 
 export function ReleasePrIndicator({ created = false }: ReleasePrIndicatorProps) {
-  const label = created ? 'created' : 'not created';
+  const label = created ? 'Criada' : 'Não criada';
 
   return (
     <Badge
@@ -15,8 +15,8 @@ export function ReleasePrIndicator({ created = false }: ReleasePrIndicatorProps)
       size="sm"
       shape="pilled"
       data-tag={created ? 'release-created' : 'release-missing'}
-      title={`Release PR: ${label}`}
-      aria-label={`Release PR: ${label}`}
+      title={`PR de release: ${label}`}
+      aria-label={`PR de release: ${label}`}
     >
       {label}
     </Badge>

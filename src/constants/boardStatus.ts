@@ -20,19 +20,19 @@ export const boardStatusConfig: Record<
     token: 'deploy',
   },
   doing: {
-    label: 'Doing',
+    label: 'Em andamento',
     token: 'doing',
   },
   done: {
-    label: 'Done',
+    label: 'Concluído',
     token: 'done',
   },
   blocked: {
-    label: 'Blocked',
+    label: 'Bloqueado',
     token: 'blocked',
   },
   default: {
-    label: 'Board',
+    label: 'Quadro',
     token: 'default',
   },
 };

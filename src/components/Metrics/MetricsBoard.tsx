@@ -87,19 +87,19 @@ export function MetricsBoard() {
   const isRefreshing = metricsQuery.isFetching && Boolean(metricsQuery.data);
 
   return (
-    <section className={styles.section} aria-label="Metrics">
+    <section className={styles.section} aria-label="Métricas">
       <div className={styles.heading}>
         <div>
-          <TitleV2 variant="h2">Metrics</TitleV2>
+          <TitleV2 variant="h2">Métricas</TitleV2>
           <Text color="muted">
             Projeto: {project} · Time: {team}
           </Text>
           {data?.vdm ? (
             <p
-              aria-label={`VDM Objective ${String(data.vdm.objective)} / Current closed cards: ${String(data.vdm.closedInMonth)}`}
+              aria-label={`Objetivo VDM ${String(data.vdm.objective)} / Cards fechados no mês: ${String(data.vdm.closedInMonth)}`}
             >
               <Text as="span">
-                VDM Objective {data.vdm.objective} / Current closed cards:{' '}
+                Objetivo VDM {data.vdm.objective} / Cards fechados no mês:{' '}
                 {data.vdm.closedInMonth}
               </Text>
             </p>
@@ -156,9 +156,9 @@ export function MetricsBoard() {
         variant="segment"
         size="sm"
         tabs={[
-          { value: 'personal', label: 'My Metrics', active: scope === 'personal' },
-          { value: 'team', label: 'Team Metrics', active: scope === 'team' },
-          { value: 'project', label: 'Project Metrics', active: scope === 'project' },
+          { value: 'personal', label: 'Minhas métricas', active: scope === 'personal' },
+          { value: 'team', label: 'Métricas do time', active: scope === 'team' },
+          { value: 'project', label: 'Métricas do projeto', active: scope === 'project' },
         ]}
         onChange={(value) => {
           if (isMetricScope(value)) {
@@ -239,8 +239,8 @@ export function MetricsBoard() {
 
           {metrics.items.length === 0 ? (
             <EmptyState
-              title="Nenhum work item encontrado"
-              message="Nenhum work item corresponde aos filtros e ao período atuais."
+              title="Nenhum item de trabalho encontrado"
+              message="Nenhum item de trabalho corresponde aos filtros e ao período atuais."
             />
           ) : null}
 
@@ -249,8 +249,8 @@ export function MetricsBoard() {
               title="Nenhum resultado encontrado"
               message={
                 selectedKpiLabel
-                  ? `Nenhum work item corresponde ao KPI ${selectedKpiLabel}.`
-                  : 'Nenhum work item corresponde aos filtros atuais.'
+                  ? `Nenhum item de trabalho corresponde ao KPI ${selectedKpiLabel}.`
+                  : 'Nenhum item de trabalho corresponde aos filtros atuais.'
               }
               filtered
             />

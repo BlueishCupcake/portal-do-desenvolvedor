@@ -14,8 +14,8 @@ describe('BugIndicator', () => {
   it('shows bugs fixed when the bug is resolved', () => {
     render(<BugIndicator type="Bug" state="Closed" />);
 
-    expect(screen.getByLabelText('Bugs fixed')).toBeInTheDocument();
-    expect(screen.getByText('Bugs fixed')).toBeInTheDocument();
+    expect(screen.getByLabelText('Bugs corrigidos')).toBeInTheDocument();
+    expect(screen.getByText('Bugs corrigidos')).toBeInTheDocument();
   });
 
   it('shows an accessible placeholder for common tasks', () => {

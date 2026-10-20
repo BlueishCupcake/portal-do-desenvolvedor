@@ -1,3 +1,4 @@
+import { formatWorkItemType } from '@/constants/workItem.ts';
 import type { Developer } from '@/types/developer.ts';
 import type {
   MetricBreakdown,
@@ -158,7 +159,7 @@ export function calculateScopeMetrics(input: CalculateMetricsInput): ScopeMetric
 
   return {
     kpis,
-    byType: countBy(scopedItems, (item) => item.type),
+    byType: countBy(scopedItems, (item) => formatWorkItemType(item.type)),
     byState: countBy(scopedItems, (item) => item.state),
     byAssignee:
       input.scope === 'personal'

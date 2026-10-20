@@ -15,7 +15,7 @@ describe('MetricsTable', () => {
         items={[
           {
             id: 88,
-            title: 'Tarefa',
+            title: 'Implementar filtro',
             type: 'Task',
             state: 'Active',
             assignedTo: 'Sophie',
@@ -37,6 +37,7 @@ describe('MetricsTable', () => {
       'href',
       'https://dev.azure.com/item/88',
     );
+    expect(screen.getByText('Implementar filtro')).toBeInTheDocument();
     expect(screen.getByText('Tarefa')).toBeInTheDocument();
     expect(screen.getByText('04/10/2026')).toBeInTheDocument();
     expect(screen.getByText('—')).toBeInTheDocument();

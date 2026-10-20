@@ -59,12 +59,12 @@ export function Header({ user }: HeaderProps) {
           variant="segment"
           size="sm"
           tabs={[
-            { value: 'tasks', label: 'Tasks', active: view === 'tasks' },
+            { value: 'tasks', label: 'Tarefas', active: view === 'tasks' },
             {
               value: 'todos',
               label: (
                 <span className={styles.tabLabel}>
-                  To Do&apos;s
+                  Anotações
                   <Badge
                     className={styles.todoCount}
                     variant="solid"
@@ -87,7 +87,7 @@ export function Header({ user }: HeaderProps) {
             },
             {
               value: 'metrics',
-              label: 'Metrics',
+              label: 'Métricas',
               active: view === 'metrics',
             },
           ]}
@@ -107,10 +107,10 @@ export function Header({ user }: HeaderProps) {
           variant={leadMode ? 'solid' : 'outline'}
           color="secondary"
           aria-pressed={leadMode}
-          aria-label={leadMode ? 'Desativar Lead Mode' : 'Ativar Lead Mode'}
+          aria-label={leadMode ? 'Desativar Modo Lead' : 'Ativar Modo Lead'}
           onClick={toggleLeadMode}
         >
-          Lead Mode
+          Modo Lead
         </Button>
         <ButtonIcon
           type="button"

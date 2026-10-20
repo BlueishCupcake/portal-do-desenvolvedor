@@ -87,16 +87,16 @@ describe('Dashboard', () => {
     expect(screen.queryByText('Corrigir autenticação')).not.toBeInTheDocument();
 
     await user.clear(screen.getByLabelText('Buscar tarefa'));
-    await user.selectOptions(screen.getByLabelText('Coluna do board'), 'Done');
+    await user.selectOptions(screen.getByLabelText('Coluna do quadro'), 'Done');
     expect(screen.getByText('Criar componente')).toBeInTheDocument();
     expect(screen.queryByText('Corrigir autenticação')).not.toBeInTheDocument();
 
     await user.selectOptions(
-      screen.getByLabelText('Coluna do board'),
-      'Todas as colunas do board',
+      screen.getByLabelText('Coluna do quadro'),
+      'Todas as colunas do quadro',
     );
     await user.selectOptions(
-      screen.getByLabelText('Status do item'),
+      screen.getByLabelText('Estado do item'),
       'Resolved',
     );
     expect(screen.getByText('Criar componente')).toBeInTheDocument();
@@ -197,7 +197,7 @@ describe('Dashboard', () => {
     expect(await screen.findByText('Corrigir autenticação')).toBeInTheDocument();
     expect(screen.queryByText('Revisar contrato da API')).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Ativar Lead Mode' }));
+    await user.click(screen.getByRole('button', { name: 'Ativar Modo Lead' }));
 
     expect(await screen.findByText('Revisar contrato da API')).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Responsável' })).toBeInTheDocument();
@@ -206,7 +206,7 @@ describe('Dashboard', () => {
     expect(screen.getByLabelText('Pontos do usuário na sprint: 28')).toBeInTheDocument();
 
     await user.click(screen.getByLabelText('Selecionar Revisar contrato da API'));
-    await user.click(screen.getByRole('button', { name: 'Request PR creation' }));
+    await user.click(screen.getByRole('button', { name: 'Solicitar criação de PR' }));
 
     expect(screen.getByRole('dialog', { name: /solicitar criação de pr/i })).toBeInTheDocument();
     expect(
@@ -221,10 +221,10 @@ describe('Dashboard', () => {
 
     expect(await screen.findByText('Corrigir autenticação')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('tab', { name: "To Do's" }));
+    await user.click(screen.getByRole('tab', { name: 'Anotações' }));
 
     expect(screen.queryByText('Corrigir autenticação')).not.toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: "To Do's" })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Anotações' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Novo post-it' })).toBeInTheDocument();
     expect(screen.getByTitle('0 post-its')).toBeInTheDocument();
 
@@ -232,7 +232,7 @@ describe('Dashboard', () => {
 
     expect(await screen.findByTitle('1 post-it')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('tab', { name: 'Tasks' }));
+    await user.click(screen.getByRole('tab', { name: 'Tarefas' }));
 
     expect(await screen.findByText('Corrigir autenticação')).toBeInTheDocument();
   });
@@ -243,28 +243,28 @@ describe('Dashboard', () => {
     renderWithProviders(<App />);
 
     const pipelinesTab = screen.getByRole('tab', { name: 'Pipelines' });
-    const metricsTab = screen.getByRole('tab', { name: 'Metrics' });
+    const metricsTab = screen.getByRole('tab', { name: 'Métricas' });
     expect(pipelinesTab.compareDocumentPosition(metricsTab)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
 
     await user.click(metricsTab);
 
-    expect(await screen.findByRole('heading', { name: 'Metrics' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'My Metrics' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Métricas' })).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: 'Minhas métricas' })).toBeInTheDocument();
     expect(
       await screen.findByRole('button', { name: /Atribuídos a mim: 7/ }),
     ).toBeInTheDocument();
     expect(
-      screen.getByLabelText('VDM Objective 7 / Current closed cards: 2'),
+      screen.getByLabelText('Objetivo VDM 7 / Cards fechados no mês: 2'),
     ).toBeInTheDocument();
     expect(screen.queryByText('Corrigir autenticação')).toBeInTheDocument();
 
     await user.click(screen.getByRole('tab', { name: 'Pipelines' }));
     expect(await screen.findByRole('heading', { name: 'Pipelines' })).toBeInTheDocument();
-    expect(screen.queryByRole('heading', { name: 'Metrics' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Métricas' })).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('tab', { name: 'Tasks' }));
+    await user.click(screen.getByRole('tab', { name: 'Tarefas' }));
     expect(await screen.findByText('Corrigir autenticação')).toBeInTheDocument();
   });
 

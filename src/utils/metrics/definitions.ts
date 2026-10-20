@@ -37,27 +37,27 @@
  */
 export const METRIC_PERMISSION_NOTES = {
   personal:
-    'Métricas pessoais do usuário autenticado pelo PAT. Work items sem permissão de leitura não aparecem.',
+    'Métricas pessoais do usuário autenticado pelo PAT. Itens de trabalho sem permissão de leitura não aparecem.',
   team: 'Itens do time acessíveis ao usuário autenticado. A consulta usa o contexto do time configurado.',
   project:
-    'Visão do projeto limitada aos work items visíveis para o usuário autenticado. Itens sem permissão não estão incluídos e a ausência deles não significa que não existam.',
+    'Visão do projeto limitada aos itens de trabalho visíveis para o usuário autenticado. Itens sem permissão não estão incluídos e a ausência deles não significa que não existam.',
 } as const;
 
 export const KPI_DEFINITIONS = {
   assigned:
-    'Work items atualmente atribuídos ao usuário autenticado no conjunto consultado.',
+    'Itens de trabalho atualmente atribuídos ao usuário autenticado no conjunto consultado.',
   active:
-    'Work items cujo estado não é concluído nem removido/cancelado.',
+    'Itens de trabalho cujo estado não é concluído nem removido/cancelado.',
   completed:
-    'Work items concluídos cuja data de fechamento (ClosedDate) ou, se ausente, ChangedDate está no período selecionado.',
+    'Itens de trabalho concluídos cuja data de fechamento (ClosedDate) ou, se ausente, ChangedDate está no período selecionado.',
   overdue:
-    'Work items ativos com Microsoft.VSTS.Scheduling.DueDate anterior ao dia UTC atual.',
-  bugs: 'Work items do tipo Bug no conjunto consultado.',
+    'Itens de trabalho ativos com data de vencimento anterior ao dia UTC atual.',
+  bugs: 'Itens de trabalho do tipo Bug no conjunto consultado.',
   pullRequests:
     'Pull requests do projeto cujo criador é o id estável do usuário autenticado. Contagem limitada à página retornada pela API.',
   pipelines:
     'Execuções recentes de build solicitadas em nome do usuário autenticado (mesmo recorte da aba Pipelines, até 50).',
-  unassigned: 'Work items sem responsável no conjunto consultado.',
+  unassigned: 'Itens de trabalho sem responsável no conjunto consultado.',
   sprintProgress:
     'Itens concluídos ÷ total de itens da sprint no conjunto consultado. Não é a média dos percentuais individuais.',
 } as const;

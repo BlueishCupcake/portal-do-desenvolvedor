@@ -15,7 +15,7 @@ describe('MetricCard', () => {
           id: 'active',
           label: 'Ativos',
           value: 4,
-          definition: 'Work items ativos',
+          definition: 'Itens de trabalho ativos',
           kind: 'current',
         }}
         selected

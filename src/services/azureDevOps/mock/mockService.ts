@@ -130,7 +130,7 @@ export function createMockAzureDevOpsService(
 
       if (options.failWorkItems) {
         throw new AzureDevOpsError(
-          'Não foi possível carregar os work items da Sprint.',
+          'Não foi possível carregar os itens de trabalho da Sprint.',
         );
       }
 
@@ -178,7 +178,7 @@ export function createMockAzureDevOpsService(
 
       const workItem = workItems.find((item) => item.id === id);
       if (!workItem) {
-        throw new AzureDevOpsError(`Work item #${String(id)} não encontrado.`);
+        throw new AzureDevOpsError(`Item de trabalho #${String(id)} não encontrado.`);
       }
 
       return toWorkItemDetails(workItem, currentSprint.name);
