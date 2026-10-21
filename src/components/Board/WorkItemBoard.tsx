@@ -113,6 +113,9 @@ export function WorkItemBoard({
               <th className={styles.points} scope="col">
                 Pontos
               </th>
+              <th className={styles.created} scope="col">
+                Criado em
+              </th>
               <th className={styles.board} scope="col">
                 Quadro
               </th>

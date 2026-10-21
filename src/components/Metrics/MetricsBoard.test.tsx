@@ -38,6 +38,7 @@ describe('MetricsBoard', () => {
       screen.getByText(/Tendências históricas exigem Azure DevOps Analytics/),
     ).toBeInTheDocument();
     expect(screen.getByText('Corrigir autenticação')).toBeInTheDocument();
+    expect(screen.queryByText('Todos os desenvolvedores')).not.toBeInTheDocument();
   });
 
   it('filters the table when a KPI is selected and clears it on a second click', async () => {
@@ -75,6 +76,24 @@ describe('MetricsBoard', () => {
     expect(await screen.findByLabelText('Período')).toHaveValue('7-days');
     await user.selectOptions(screen.getByLabelText('Período'), '90 dias');
     expect(screen.getByLabelText('Período')).toHaveValue('90-days');
+  });
+
+  it('filters team metrics by another developer on the team', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(<MetricsBoard />);
+
+    await user.click(await screen.findByRole('tab', { name: 'Métricas do time' }));
+    expect(await screen.findByText('Corrigir autenticação')).toBeInTheDocument();
+    expect(screen.getByText('Revisar contrato da API')).toBeInTheDocument();
+
+    await user.click(screen.getByText('Todos os desenvolvedores'));
+    await user.click(screen.getByLabelText('Alex Santos'));
+
+    expect(await screen.findByText('Revisar contrato da API')).toBeInTheDocument();
+    expect(screen.queryByText('Corrigir autenticação')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Ativos: 1/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Bugs: 0/ })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /PRs:/ })).not.toBeInTheDocument();
   });
 
   it('keeps the scope tabs available in dark mode', async () => {

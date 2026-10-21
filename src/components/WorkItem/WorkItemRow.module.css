@@ -16,6 +16,7 @@
 .select,
 .assignee,
 .points,
+.created,
 .releasePr,
 .deployed {
   min-width: 0;
@@ -28,7 +29,8 @@
   gap: 0.15rem;
 }
 
-.board {
+.board,
+.created {
   white-space: nowrap;
 }
 
@@ -43,6 +45,7 @@
   .select,
   .assignee,
   .points,
+  .created,
   .releasePr,
   .deployed {
     padding: 0.55rem 0.85rem;

@@ -81,6 +81,19 @@ describe('WorkItemRow', () => {
     expect(screen.getByText('4')).toBeInTheDocument();
   });
 
+  it('shows the creation date when available', () => {
+    renderRow(createWorkItem({ createdAt: '2026-10-04' }));
+
+    expect(screen.getByLabelText('Criado em 04/10/2026')).toBeInTheDocument();
+    expect(screen.getByText('04/10/2026')).toBeInTheDocument();
+  });
+
+  it('shows a fallback when the creation date is missing', () => {
+    renderRow(createWorkItem({ createdAt: undefined }));
+
+    expect(screen.getByLabelText('Data de criação indisponível')).toBeInTheDocument();
+  });
+
   it('highlights work items blocked by the Azure blocked field', () => {
     renderRow(
       createWorkItem({

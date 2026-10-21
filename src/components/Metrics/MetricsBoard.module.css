@@ -17,7 +17,14 @@
   flex-wrap: wrap;
   gap: 1rem;
   align-items: end;
+  overflow: visible;
   color: var(--color-ink);
+}
+
+.developerFilter {
+  position: relative;
+  z-index: 30;
+  min-width: min(100%, 18rem);
 }
 
 .tabs {

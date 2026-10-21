@@ -1,5 +1,5 @@
 import { Button, Select, Spinner, Tabs, Text, TitleV2 } from '@poliedro/tamentai/web';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { EmptyState } from '@/components/EmptyState/EmptyState.tsx';
 import { ErrorState } from '@/components/ErrorState/ErrorState.tsx';
@@ -7,12 +7,15 @@ import { MetricCard } from '@/components/Metrics/MetricCard.tsx';
 import styles from '@/components/Metrics/MetricsBoard.module.css';
 import { MetricsBreakdown } from '@/components/Metrics/MetricsBreakdown.tsx';
 import { MetricsTable } from '@/components/Metrics/MetricsTable.tsx';
+import { DeveloperMultiSelect } from '@/components/WorkItem/DeveloperMultiSelect.tsx';
 import { useCurrentSprint } from '@/hooks/useCurrentSprint.ts';
 import { useMetrics } from '@/hooks/useMetrics.ts';
 import type { MetricPeriod, MetricScope } from '@/types/metrics.ts';
 import { readEnv } from '@/utils/env.ts';
+import { uniqueSortedValues } from '@/utils/filterWorkItems.ts';
 import { formatDate } from '@/utils/formatDate.ts';
 import { filterMetricItems } from '@/utils/metrics/filterMetricItems.ts';
+import { filterMetricsByDevelopers } from '@/utils/metrics/filterMetricsByDevelopers.ts';
 import { sprintValue } from '@/utils/sprint.ts';
 
 const PERIOD_OPTIONS: Array<{ value: MetricPeriod; label: string }> = [
@@ -51,6 +54,7 @@ export function MetricsBoard() {
   const [scope, setScope] = useState<MetricScope>('personal');
   const [period, setPeriod] = useState<MetricPeriod>('current-sprint');
   const [selectedKpi, setSelectedKpi] = useState<string | null>(null);
+  const [selectedDevelopers, setSelectedDevelopers] = useState<string[]>([]);
   const sprintQuery = useCurrentSprint();
   const sprintId = sprintQuery.data ? sprintValue(sprintQuery.data) : undefined;
   const metricsQuery = useMetrics({
@@ -65,19 +69,30 @@ export function MetricsBoard() {
   const team =
     metricsQuery.data?.context.team || readEnv('VITE_AZURE_DEVOPS_TEAM') || '—';
   const data = metricsQuery.data;
-  const metrics = data?.metrics;
-  const visibleItems = metrics
-    ? filterMetricItems(
-        metrics.items,
-        selectedKpi,
+  const developers = useMemo(
+    () => uniqueSortedValues((data?.metrics?.items ?? []).map((item) => item.assignedTo)),
+    [data?.metrics?.items],
+  );
+  const visibleDevelopers = selectedDevelopers.filter((developer) =>
+    developers.includes(developer),
+  );
+  const periodRange = {
+    startDate: data?.context.periodStart,
+    endDate: data?.context.periodEnd,
+  };
+  const metrics = data?.metrics
+    ? filterMetricsByDevelopers(data.metrics, visibleDevelopers, {
+        scope,
         period,
-        {
-          startDate: data.context.periodStart,
-          endDate: data.context.periodEnd,
-        },
-      )
+        sprint: periodRange,
+        now: data.generatedAt ? new Date(data.generatedAt) : undefined,
+      })
+    : undefined;
+  const visibleItems = metrics
+    ? filterMetricItems(metrics.items, selectedKpi, period, periodRange)
     : [];
   const selectedKpiLabel = metrics?.kpis.find((kpi) => kpi.id === selectedKpi)?.label;
+  const showDeveloperFilter = scope !== 'personal' && developers.length > 0;
   const waitingSprint =
     period === 'current-sprint' && !sprintId && sprintQuery.isLoading;
   const isLoading = metricsQuery.isLoading || waitingSprint;
@@ -130,6 +145,18 @@ export function MetricsBoard() {
             }
           }}
         />
+        {showDeveloperFilter ? (
+          <div className={styles.developerFilter}>
+            <DeveloperMultiSelect
+              developers={developers}
+              selected={visibleDevelopers}
+              onChange={(next) => {
+                setSelectedKpi(null);
+                setSelectedDevelopers(next);
+              }}
+            />
+          </div>
+        ) : null}
         <div>
           <Text variant="overline" color="muted">
             Atualizado
@@ -164,6 +191,9 @@ export function MetricsBoard() {
           if (isMetricScope(value)) {
             setSelectedKpi(null);
             setScope(value);
+            if (value === 'personal') {
+              setSelectedDevelopers([]);
+            }
           }
         }}
       />

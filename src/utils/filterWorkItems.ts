@@ -27,7 +27,10 @@ export function matchesBoardColumn(item: WorkItem, boardColumn: string): boolean
   return item.boardColumn === boardColumn;
 }
 
-export function matchesDevelopers(item: WorkItem, developers: string[]): boolean {
+export function matchesDevelopers(
+  item: Pick<WorkItem, 'assignedTo'>,
+  developers: readonly string[],
+): boolean {
   return developers.length === 0 || developers.includes(item.assignedTo);
 }
 

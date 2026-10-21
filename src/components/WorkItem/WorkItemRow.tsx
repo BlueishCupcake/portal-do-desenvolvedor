@@ -7,6 +7,7 @@ import { ReleasePrIndicator } from '@/components/ReleasePrIndicator/ReleasePrInd
 import styles from '@/components/WorkItem/WorkItemRow.module.css';
 import { formatWorkItemType } from '@/constants/workItem.ts';
 import type { BugStatus, WorkItem } from '@/types/workItem.ts';
+import { formatDate } from '@/utils/formatDate.ts';
 import { isBlockedWorkItem } from '@/utils/resolveBoardStatus.ts';
 
 interface WorkItemRowProps {
@@ -86,6 +87,17 @@ export function WorkItemRow({
           }
         >
           <Text as="span">{workItem.storyPoints ?? '—'}</Text>
+        </span>
+      </td>
+      <td className={styles.created}>
+        <span
+          aria-label={
+            workItem.createdAt
+              ? `Criado em ${formatDate(workItem.createdAt)}`
+              : 'Data de criação indisponível'
+          }
+        >
+          <Text as="span">{workItem.createdAt ? formatDate(workItem.createdAt) : '—'}</Text>
         </span>
       </td>
       <td className={styles.board}>

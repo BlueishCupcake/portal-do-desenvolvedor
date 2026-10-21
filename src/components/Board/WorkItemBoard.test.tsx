@@ -10,7 +10,7 @@ describe('WorkItemBoard', () => {
     render(
       <WorkItemBoard
         workItems={[
-          createWorkItem({ id: 1, title: 'Task A' }),
+          createWorkItem({ id: 1, title: 'Task A', createdAt: '2026-10-01' }),
           createWorkItem({ id: 2, title: 'Task B', type: 'Bug' }),
         ]}
         onSelect={vi.fn()}
@@ -21,6 +21,8 @@ describe('WorkItemBoard', () => {
     expect(screen.getByText('Task B')).toBeInTheDocument();
     expect(screen.getByLabelText('Bug')).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Pontos' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Criado em' })).toBeInTheDocument();
+    expect(screen.getAllByText('01/10/2026').length).toBeGreaterThanOrEqual(1);
     expect(
       screen.getByRole('columnheader', { name: 'PR de release' }),
     ).toBeInTheDocument();
