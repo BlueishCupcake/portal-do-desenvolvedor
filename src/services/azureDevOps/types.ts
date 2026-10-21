@@ -1,4 +1,10 @@
-import type { CreateDeployCardInput, DeployCard } from '@/types/deployCard.ts';
+import type {
+  AttachTasksToDeployCardInput,
+  AttachTasksToDeployCardResult,
+  CreateDeployCardInput,
+  DeployCard,
+  DeployCardSummary,
+} from '@/types/deployCard.ts';
 import type { Developer } from '@/types/developer.ts';
 import type { MetricsDashboardData, MetricsQuery } from '@/types/metrics.ts';
 import type { PipelineRun } from '@/types/pipeline.ts';
@@ -19,6 +25,13 @@ export interface AzureDevOpsService {
   getWorkItemDetails(id: number): Promise<WorkItemDetails>;
   getMetrics(query: MetricsQuery): Promise<MetricsDashboardData>;
   createDeployCard(input: CreateDeployCardInput): Promise<DeployCard>;
+  listDeployCards(
+    sprintId: string | readonly string[],
+  ): Promise<DeployCardSummary[]>;
+  attachTasksToDeployCard(
+    deployCardId: number,
+    input: AttachTasksToDeployCardInput,
+  ): Promise<AttachTasksToDeployCardResult>;
 }
 
 export interface WorkItemQueryOptions {

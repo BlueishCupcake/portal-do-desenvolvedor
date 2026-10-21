@@ -22,12 +22,14 @@ describe('buildDeployCardDescription', () => {
           repositoryName: 'api',
           projectName: 'novo-banco-questoes',
           targetBranch: 'refs/heads/feature/61407',
+          status: 'completed',
         },
         {
           id: 125417,
           repositoryName: 'api',
           projectName: 'novo-banco-questoes',
           targetBranch: 'refs/heads/main',
+          status: 'completed',
           url: 'https://dev.azure.com/pullrequest/125417',
         },
       ],
@@ -44,6 +46,7 @@ describe('buildDeployCardDescription', () => {
           repositoryName: 'batch-versioning-service',
           projectName: 'lote-banco-questoes',
           targetBranch: 'refs/heads/Main',
+          status: 'completed',
           url: 'https://dev.azure.com/pullrequest/124308',
         },
       ],
@@ -60,7 +63,8 @@ batch-versioning-service / lote-banco-questoes
 
 Pull Requests:
 api / novo-banco-questoes
-[(Main) (!125417)](https://dev.azure.com/pullrequest/125417)
+(feature/61407) (!125389)
+[(main) (!125417)](https://dev.azure.com/pullrequest/125417)
 batch-versioning-service / lote-banco-questoes
 [(Main) (!124308)](https://dev.azure.com/pullrequest/124308)
 
@@ -75,10 +79,10 @@ TAREFA 61407: Ajustar retornos da API
     const description = buildDeployCardDescription([item]);
 
     expect(description).toContain(
-      'Nenhuma aplicação identificada nas pull requests das tarefas.',
+      'Nenhuma aplicação identificada nas pull requests concluídas das tarefas.',
     );
     expect(description).toContain(
-      'Nenhuma pull request vinculada às tarefas selecionadas.',
+      'Nenhuma pull request concluída vinculada às tarefas selecionadas.',
     );
     expect(description).toContain('TAREFA 1: Sem PR');
   });

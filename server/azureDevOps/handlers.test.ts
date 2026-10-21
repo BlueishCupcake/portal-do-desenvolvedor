@@ -137,6 +137,158 @@ describe('azure devops api handlers', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it('lists open deploy cards for a sprint', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+
+      if (url.includes('/_apis/wit/wiql')) {
+        expect(String(init?.body)).toContain('IterationPath');
+        expect(String(init?.body)).not.toContain('System.WorkItemType');
+        return {
+          ok: true,
+          json: async () => ({
+            workItems: [{ id: 120000 }, { id: 120001 }],
+          }),
+        };
+      }
+
+      if (url.includes('/_apis/wit/workitems?')) {
+        return {
+          ok: true,
+          json: async () => ({
+            value: [
+              {
+                id: 120000,
+                fields: {
+                  'System.Title': 'Deploy A',
+                  'System.State': 'New',
+                  'System.IterationPath': 'Portal\\Sprint 42',
+                },
+              },
+              {
+                id: 120001,
+                fields: {
+                  'System.Title': 'História B',
+                  'System.State': 'Active',
+                  'System.IterationPath': 'Portal\\Sprint 42',
+                },
+              },
+            ],
+          }),
+        };
+      }
+
+      if (url.includes('/_apis/teams')) {
+        return { ok: true, json: async () => ({ value: [{ name: 'Team' }] }) };
+      }
+
+      return { ok: true, json: async () => ({}) };
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(
+      handleAzureDevOpsApi(
+        'GET',
+        '/api/azure-devops/deploy-cards',
+        new URLSearchParams({ sprintId: 'Portal\\Sprint 42' }),
+        env,
+      ),
+    ).resolves.toMatchObject({
+      status: 200,
+      body: {
+        value: [
+          expect.objectContaining({ id: 120000, title: 'Deploy A' }),
+          expect.objectContaining({ id: 120001, title: 'História B' }),
+        ],
+      },
+    });
+  });
+
+  it('attaches tasks to a deploy card and closes them', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      const method = init?.method ?? 'GET';
+
+      if (url.includes('/_apis/wit/workitems') && url.includes('ids=120000')) {
+        return {
+          ok: true,
+          json: async () => ({
+            value: [
+              {
+                id: 120000,
+                relations: [
+                  {
+                    rel: 'System.LinkTypes.Related',
+                    url: 'https://dev.azure.com/contoso/portal/_apis/wit/workItems/61407',
+                  },
+                ],
+                fields: {
+                  'System.Title': 'Deploy Sprint 42',
+                  'System.WorkItemType': 'Task',
+                  'System.State': 'New',
+                },
+              },
+            ],
+          }),
+        };
+      }
+
+      if (url.includes('/workitems/120000') && method === 'PATCH') {
+        return {
+          ok: true,
+          json: async () => ({
+            id: 120000,
+            fields: {
+              'System.Title': 'Deploy Sprint 42',
+              'System.WorkItemType': 'Task',
+              'System.State': 'New',
+            },
+          }),
+        };
+      }
+
+      if (url.includes('/workitems/61408') && method === 'PATCH') {
+        expect(JSON.parse(String(init?.body))).toEqual([
+          { op: 'replace', path: '/fields/System.State', value: 'Closed' },
+        ]);
+        return {
+          ok: true,
+          json: async () => ({
+            id: 61408,
+            fields: { 'System.State': 'Closed' },
+          }),
+        };
+      }
+
+      if (url.includes('/_apis/teams')) {
+        return { ok: true, json: async () => ({ value: [{ name: 'Team' }] }) };
+      }
+
+      return { ok: true, json: async () => ({}) };
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(
+      handleAzureDevOpsApi(
+        'POST',
+        '/api/azure-devops/deploy-cards/120000/tasks',
+        new URLSearchParams(),
+        env,
+        {
+          description: 'Aplicações afetadas:\nNenhuma',
+          workItemIds: [61408],
+        },
+      ),
+    ).resolves.toMatchObject({
+      status: 200,
+      body: expect.objectContaining({
+        id: 120000,
+        closedWorkItemIds: [61408],
+        attachedWorkItemIds: [61408],
+      }),
+    });
+  });
+
   it('loads the current user, sprint and assigned work items', async () => {
     const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);

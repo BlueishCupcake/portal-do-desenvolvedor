@@ -3,7 +3,7 @@ import type { AzureDevOpsServerConfig } from './config.ts';
 const API_VERSION = '7.1';
 
 export interface AzureDevOpsRequestOptions {
-  method?: 'GET' | 'POST';
+  method?: 'GET' | 'POST' | 'PATCH';
   body?: string;
   contentType?: string;
 }

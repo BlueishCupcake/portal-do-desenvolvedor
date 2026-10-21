@@ -1,11 +1,18 @@
 import { Button, Checkbox } from '@poliedro/tamentai/web';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { AddToDeployCardDialog } from '@/components/AddToDeployCardDialog/AddToDeployCardDialog.tsx';
 import styles from '@/components/Board/WorkItemBoard.module.css';
 import { DeployCardDialog } from '@/components/DeployCardDialog/DeployCardDialog.tsx';
 import { PrRequestDialog } from '@/components/PrRequestDialog/PrRequestDialog.tsx';
 import { WorkItemRow } from '@/components/WorkItem/WorkItemRow.tsx';
-import type { CreateDeployCardInput, DeployCard } from '@/types/deployCard.ts';
+import type {
+  AttachTasksToDeployCardInput,
+  AttachTasksToDeployCardResult,
+  CreateDeployCardInput,
+  DeployCard,
+  DeployCardSummary,
+} from '@/types/deployCard.ts';
 import type { WorkItem } from '@/types/workItem.ts';
 import { resolveBugStatus } from '@/utils/resolveBugStatus.ts';
 
@@ -17,6 +24,18 @@ interface WorkItemBoardProps {
   onSelectedIdsChange?: (ids: number[]) => void;
   onSelect: (id: number) => void;
   onCreateDeployCard?: (input: CreateDeployCardInput) => Promise<DeployCard>;
+  deployCards?: DeployCardSummary[];
+  isLoadingDeployCards?: boolean;
+  deployCardsError?: string | null;
+  onLoadDeployCardRelatedIds?: (deployCardId: number) => Promise<number[]>;
+  onAttachTasksToDeployCard?: (
+    deployCardId: number,
+    input: AttachTasksToDeployCardInput,
+  ) => Promise<AttachTasksToDeployCardResult>;
+  onAttachedToDeployCard?: () => void;
+  sprintIterationPath?: string;
+  onRefreshDeployCards?: () => void;
+  onDeployCardsChanged?: () => void;
 }
 
 export function WorkItemBoard({
@@ -27,10 +46,20 @@ export function WorkItemBoard({
   onSelectedIdsChange,
   onSelect,
   onCreateDeployCard,
+  deployCards = [],
+  isLoadingDeployCards = false,
+  deployCardsError = null,
+  onLoadDeployCardRelatedIds,
+  onAttachTasksToDeployCard,
+  onAttachedToDeployCard,
+  sprintIterationPath,
+  onRefreshDeployCards,
+  onDeployCardsChanged,
 }: WorkItemBoardProps) {
   const [internalSelectedIds, setInternalSelectedIds] = useState<number[]>([]);
   const [isRequestOpen, setIsRequestOpen] = useState(false);
   const [isDeployOpen, setIsDeployOpen] = useState(false);
+  const [isAddToDeployOpen, setIsAddToDeployOpen] = useState(false);
   const selectedIds = controlledSelectedIds ?? internalSelectedIds;
   const visibleIds = useMemo(() => workItems.map((item) => item.id), [workItems]);
   const catalogIds = useMemo(() => catalog.map((item) => item.id), [catalog]);
@@ -61,6 +90,7 @@ export function WorkItemBoard({
       }
       setIsRequestOpen(false);
       setIsDeployOpen(false);
+      setIsAddToDeployOpen(false);
     }
   }, [leadMode, selectedIds, setSelectedIds]);
 
@@ -167,6 +197,18 @@ export function WorkItemBoard({
               Criar cartão de deploy
             </Button>
           ) : null}
+          {canCreateDeployCard ? (
+            <Button
+              type="button"
+              color="primary"
+              onClick={() => {
+                setIsAddToDeployOpen(true);
+                onRefreshDeployCards?.();
+              }}
+            >
+              Adicionar tarefas a um card de deploy
+            </Button>
+          ) : null}
         </div>
       ) : null}
       <PrRequestDialog
@@ -180,6 +222,7 @@ export function WorkItemBoard({
         open={isDeployOpen}
         workItems={selectedItems}
         catalog={catalog}
+        defaultIterationPath={sprintIterationPath}
         onCreate={
           onCreateDeployCard ??
           (() =>
@@ -192,6 +235,35 @@ export function WorkItemBoard({
         }}
         onCreated={() => {
           setSelectedIds([]);
+          onDeployCardsChanged?.();
+        }}
+      />
+      <AddToDeployCardDialog
+        open={isAddToDeployOpen}
+        workItems={selectedItems}
+        catalog={catalog}
+        deployCards={deployCards}
+        isLoadingDeployCards={isLoadingDeployCards}
+        deployCardsError={deployCardsError}
+        onLoadDeployCardRelatedIds={
+          onLoadDeployCardRelatedIds ??
+          (() => Promise.resolve([]))
+        }
+        onAttach={
+          onAttachTasksToDeployCard ??
+          ((_, __) =>
+            Promise.reject(
+              new Error(
+                'A anexação ao cartão de deploy não está configurada.',
+              ),
+            ))
+        }
+        onClose={() => {
+          setIsAddToDeployOpen(false);
+        }}
+        onAttached={() => {
+          setSelectedIds([]);
+          onAttachedToDeployCard?.();
         }}
       />
     </section>

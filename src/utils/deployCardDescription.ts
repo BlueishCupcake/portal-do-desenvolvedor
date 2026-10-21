@@ -14,12 +14,13 @@ function uniqueBy<T>(values: T[], key: (value: T) => string): T[] {
   });
 }
 
-function targetsMain(pullRequest: WorkItemPullRequest): boolean {
-  const branch = pullRequest.targetBranch
-    .replace(/^refs\/heads\//i, '')
-    .toLowerCase();
+function isCompletedPullRequest(pullRequest: WorkItemPullRequest): boolean {
+  return (pullRequest.status ?? '').toLowerCase() === 'completed';
+}
 
-  return branch === 'main';
+function readBranchName(targetBranch: string): string {
+  const branch = targetBranch.replace(/^refs\/heads\//i, '').trim();
+  return branch.length > 0 ? branch : 'branch';
 }
 
 function workItemTypeLabel(item: WorkItem): string {
@@ -41,7 +42,7 @@ export function buildDeployCardDescription(
 ): string {
   const pullRequests = selectedItems.flatMap((item) =>
     (item.pullRequests ?? [])
-      .filter(targetsMain)
+      .filter(isCompletedPullRequest)
       .map((pullRequest) => ({ item, pullRequest })),
   );
   const applications = uniqueBy(
@@ -86,19 +87,23 @@ export function buildDeployCardDescription(
           (application) =>
             `${application.repositoryName} / ${application.projectName}`,
         )
-      : ['Nenhuma aplicação identificada nas pull requests das tarefas.']),
+      : [
+          'Nenhuma aplicação identificada nas pull requests concluídas das tarefas.',
+        ]),
   );
   lines.push('', 'Pull Requests:');
 
   if (groupedPullRequests.size === 0) {
-    lines.push('Nenhuma pull request vinculada às tarefas selecionadas.');
+    lines.push(
+      'Nenhuma pull request concluída vinculada às tarefas selecionadas.',
+    );
   } else {
     for (const [application, entries] of groupedPullRequests) {
       lines.push(application);
       lines.push(
         ...uniqueBy(entries, ({ pullRequest }) => String(pullRequest.id)).map(
           ({ pullRequest }) => {
-            const label = `(Main) (!${String(pullRequest.id)})`;
+            const label = `(${readBranchName(pullRequest.targetBranch)}) (!${String(pullRequest.id)})`;
             return pullRequest.url
               ? `[${label}](${pullRequest.url})`
               : label;

@@ -22,6 +22,7 @@ testes automatizados com Vitest.
 - Story Points de cada item e total de pontos do usuário na Sprint;
 - contagem de cards puxados, desconsiderando `Ag Desenvolvimento`, e fechados;
 - indicação de PR de release e deploy em `main`;
+- coluna **Criado em** (`System.CreatedDate`);
 - detalhes do Work Item em um painel lateral;
 - tema claro e escuro.
 
@@ -31,20 +32,31 @@ O Lead Mode carrega todos os itens da Sprint e mostra o responsável por cada
 um. Ao selecionar tarefas de um único desenvolvedor, é possível gerar uma
 mensagem profissional, em português, solicitando a criação das pull requests.
 A mensagem contém links para os Work Items e pode ser copiada.
-
+      
 O filtro **Desenvolvedores** permite combinar múltiplos responsáveis. Tarefas
 marcadas continuam selecionadas ao adicionar, remover ou limpar esse filtro.
 
-Ao selecionar pelo menos uma tarefa, a ação **Create deploy card** cria um Work
-Item no Azure DevOps. O usuário informa o título e o portal monta a descrição
-com as aplicações afetadas, pull requests destinadas à branch `main` e
-Stories/Features relacionadas. As pull requests e os Work Items são exibidos
-como links. As tarefas selecionadas também são vinculadas ao novo cartão. A
-criação real está disponível com o provider `rest`.
+Com pelo menos uma tarefa selecionada, três ações ficam disponíveis:
 
-### To Do's
+1. **Solicitar criação de PR** — mensagem em português para copiar (apenas
+   quando todas as tarefas selecionadas têm o mesmo responsável).
+2. **Criar cartão de deploy** — cria um Work Item no Azure DevOps. O usuário
+   informa o título; o portal monta a descrição com **Aplicações afetadas**
+   (repositório/projeto das PRs **concluídas** vinculadas às tarefas, em
+   qualquer branch), lista de PRs concluídas e Histórias/Funcionalidades
+   relacionadas. As tarefas selecionadas são vinculadas ao novo cartão.
+3. **Adicionar tarefas a um card de deploy** — escolhe qualquer item da Sprint
+   no select, revisa a descrição consolidada (tarefas já ligadas ao cartão +
+   selecionadas) e anexa. O BFF atualiza descrição e relations no Azure e
+   define as tarefas selecionadas como **Closed**.
 
-A aba To Do's permite criar, editar e excluir post-its. Os dados ficam salvos
+A lista do select usa os mesmos itens da Sprint do Modo Lead (`GET
+/deploy-cards`). Criação e anexação reais exigem o provider `rest` e PAT com
+**Work Items (Read & write)**.
+
+### Anotações
+
+A aba **Anotações** permite criar, editar e excluir post-its. Os dados ficam salvos
 no `localStorage` do navegador. O indicador vermelho acima da aba mostra a
 quantidade atual de post-its.
 
@@ -74,6 +86,8 @@ Escopos:
   (`[System.AssignedTo] = @Me`). A identidade vem do PAT; o navegador
   não envia um user id como prova de identidade.
 - **Team Metrics**: itens da sprint/consulta do time configurado.
+- **Team / Project**: filtro opcional por um ou mais desenvolvedores (recalcula
+  KPIs, breakdown e tabela no cliente).
 - **Project Metrics**: itens visíveis no projeto. A ausência de um item
   não significa que ele não exista — a visão é limitada pelas permissões
   do usuário autenticado.

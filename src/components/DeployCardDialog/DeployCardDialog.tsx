@@ -13,6 +13,7 @@ interface DeployCardDialogProps {
   onCreate: (input: CreateDeployCardInput) => Promise<DeployCard>;
   onClose: () => void;
   onCreated: () => void;
+  defaultIterationPath?: string;
 }
 
 export function DeployCardDialog({
@@ -22,6 +23,7 @@ export function DeployCardDialog({
   onCreate,
   onClose,
   onCreated,
+  defaultIterationPath,
 }: DeployCardDialogProps) {
   const [title, setTitle] = useState('');
   const [isCreating, setIsCreating] = useState(false);
@@ -55,7 +57,8 @@ export function DeployCardDialog({
         title: normalizedTitle,
         description,
         workItemIds: workItems.map((item) => item.id),
-        iterationPath: workItems[0]?.iterationPath,
+        iterationPath:
+          workItems[0]?.iterationPath ?? defaultIterationPath,
       });
       setCreatedCard(card);
       onCreated();

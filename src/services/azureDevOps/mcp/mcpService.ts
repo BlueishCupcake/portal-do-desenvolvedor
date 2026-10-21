@@ -189,5 +189,17 @@ export function createMcpAzureDevOpsService(
         'A criação de cartão de deploy requer o provider REST e um PAT com Work Items (Read & write).',
       );
     },
+
+    async listDeployCards() {
+      throw new AzureDevOpsError(
+        'A listagem de cartões de deploy requer o provider REST e um PAT com Work Items (Read).',
+      );
+    },
+
+    async attachTasksToDeployCard() {
+      throw new AzureDevOpsError(
+        'Anexar tarefas a um cartão de deploy requer o provider REST e um PAT com Work Items (Read & write).',
+      );
+    },
   };
 }

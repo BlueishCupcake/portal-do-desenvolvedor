@@ -393,6 +393,181 @@ async function createDeployCard(
   return withWebUrl(config, created);
 }
 
+function readAttachTasksPayload(payload: unknown): {
+  description: string;
+  workItemIds: number[];
+} {
+  if (!isRecord(payload)) {
+    throw new InvalidRequestError('Dados de anexação inválidos.');
+  }
+
+  const description = readString(payload.description)?.trim();
+  const workItemIds = Array.isArray(payload.workItemIds)
+    ? payload.workItemIds.filter(
+        (id): id is number => typeof id === 'number' && Number.isInteger(id),
+      )
+    : [];
+
+  if (!description || workItemIds.length === 0) {
+    throw new InvalidRequestError(
+      'Informe a descrição e ao menos uma tarefa para anexar ao cartão de deploy.',
+    );
+  }
+
+  return {
+    description,
+    workItemIds: [...new Set(workItemIds)],
+  };
+}
+
+function readRelatedDeployTaskIds(item: JsonRecord): number[] {
+  if (!Array.isArray(item.relations)) {
+    return [];
+  }
+
+  return item.relations.flatMap((relation) => {
+    if (!isRecord(relation)) {
+      return [];
+    }
+
+    if (readString(relation.rel) !== 'System.LinkTypes.Related') {
+      return [];
+    }
+
+    const match = /\/workItems\/(\d+)$/i.exec(readString(relation.url) ?? '');
+    return match?.[1] ? [Number(match[1])] : [];
+  });
+}
+
+function toDeployCardSummary(config: AzureDevOpsServerConfig, item: JsonRecord) {
+  const id = readNumber(item.id);
+  const fields = isRecord(item.fields) ? item.fields : undefined;
+  const title = readString(fields?.['System.Title']);
+  const state = readString(fields?.['System.State']) ?? '';
+  const iterationPath = readString(fields?.['System.IterationPath']);
+  const url = workItemWebUrl(config, item);
+
+  if (id === undefined || !title || !url) {
+    throw new Error('Cartão de deploy inválido retornado pelo Azure DevOps.');
+  }
+
+  return { id, title, url, state, iterationPath };
+}
+
+async function listDeployCards(
+  config: AzureDevOpsServerConfig,
+  teamSegment: string,
+  searchParams: URLSearchParams,
+): Promise<{ value: JsonRecord[] }> {
+  const sprintIds = searchParams.getAll('sprintId').filter((id) => id.length > 0);
+  const iterationPath = readString(searchParams.get('iterationPath') ?? undefined);
+  const effectiveSprintIds =
+    sprintIds.length > 0 ? sprintIds : iterationPath ? [iterationPath] : [];
+
+  if (effectiveSprintIds.length === 0) {
+    throw new InvalidRequestError(
+      'Informe sprintId ou iterationPath para listar cartões de deploy.',
+    );
+  }
+
+  const ids = await queryWorkItemIds(
+    config,
+    teamSegment,
+    buildSprintWorkItemsQuery(effectiveSprintIds, true),
+  );
+  const items = await fetchWorkItemsByIds(
+    config,
+    ids,
+    'System.Id,System.Title,System.State,System.IterationPath',
+  );
+
+  return {
+    value: items
+      .map((item) => toDeployCardSummary(config, item))
+      .sort((left, right) =>
+        left.title.localeCompare(right.title, 'pt-BR', { sensitivity: 'base' }),
+      ),
+  };
+}
+
+async function patchWorkItem(
+  config: AzureDevOpsServerConfig,
+  workItemId: number,
+  patch: JsonRecord[],
+): Promise<JsonRecord> {
+  const updated = await azureDevOpsRequest(
+    config,
+    withApiVersion(
+      `/${encodeSegment(config.project)}/_apis/wit/workitems/${String(workItemId)}`,
+    ),
+    {
+      method: 'PATCH',
+      contentType: 'application/json-patch+json',
+      body: JSON.stringify(patch),
+    },
+  );
+
+  return withWebUrl(config, updated);
+}
+
+async function attachTasksToDeployCard(
+  config: AzureDevOpsServerConfig,
+  deployCardId: number,
+  payload: unknown,
+): Promise<JsonRecord> {
+  const input = readAttachTasksPayload(payload);
+  const deployCards = await fetchWorkItemsByIds(config, [deployCardId]);
+  const deployCard = deployCards[0];
+  if (!deployCard) {
+    throw new InvalidRequestError('Cartão de deploy não encontrado.');
+  }
+
+  const existingRelatedIds = readRelatedDeployTaskIds(deployCard);
+  const newWorkItemIds = input.workItemIds.filter(
+    (id) => !existingRelatedIds.includes(id),
+  );
+  const patch: JsonRecord[] = [
+    {
+      op: 'replace',
+      path: '/fields/System.Description',
+      value: descriptionToHtml(input.description),
+    },
+  ];
+
+  for (const workItemId of newWorkItemIds) {
+    patch.push({
+      op: 'add',
+      path: '/relations/-',
+      value: {
+        rel: 'System.LinkTypes.Related',
+        url: `https://dev.azure.com/${encodeSegment(config.organization)}/${encodeSegment(config.project)}/_apis/wit/workItems/${String(workItemId)}`,
+        attributes: {
+          comment:
+            'Tarefa incluída no cartão de deploy pelo Portal do Desenvolvedor.',
+        },
+      },
+    });
+  }
+
+  const updatedCard = await patchWorkItem(config, deployCardId, patch);
+  const closedWorkItemIds: number[] = [];
+
+  for (const workItemId of input.workItemIds) {
+    await patchWorkItem(config, workItemId, [
+      { op: 'replace', path: '/fields/System.State', value: 'Closed' },
+    ]);
+    closedWorkItemIds.push(workItemId);
+  }
+
+  const summary = toDeployCardSummary(config, updatedCard);
+
+  return {
+    ...summary,
+    attachedWorkItemIds: newWorkItemIds,
+    closedWorkItemIds,
+  };
+}
+
 async function fetchWorkItemsByIds(
   config: AzureDevOpsServerConfig,
   ids: number[],
@@ -728,10 +903,14 @@ export async function handleAzureDevOpsApi(
   env: Record<string, string | undefined> = process.env,
   requestBody?: unknown,
 ): Promise<AzureDevOpsApiResult> {
-  if (
-    method !== 'GET' &&
-    !(method === 'POST' && pathname === '/api/azure-devops/deploy-cards')
-  ) {
+  const attachTasksMatch = /^\/api\/azure-devops\/deploy-cards\/(\d+)\/tasks$/.exec(
+    pathname,
+  );
+  const allowsWrite =
+    (method === 'POST' && pathname === '/api/azure-devops/deploy-cards') ||
+    (method === 'POST' && attachTasksMatch !== null);
+
+  if (method !== 'GET' && !allowsWrite) {
     return { status: 405, body: { message: 'Método não permitido.' } };
   }
 
@@ -755,11 +934,30 @@ export async function handleAzureDevOpsApi(
       };
     }
 
+    if (method === 'POST' && attachTasksMatch) {
+      const deployCardId = Number(attachTasksMatch[1]);
+      if (!Number.isInteger(deployCardId)) {
+        throw new InvalidRequestError('Cartão de deploy inválido.');
+      }
+
+      return {
+        status: 200,
+        body: await attachTasksToDeployCard(config, deployCardId, requestBody),
+      };
+    }
+
     const team = await resolveTeam(config);
     const teamSegment = `/${encodeSegment(config.project)}/${encodeSegment(team)}`;
 
     if (pathname === '/api/azure-devops/me') {
       return { status: 200, body: await getAuthenticatedIdentity(config) };
+    }
+
+    if (pathname === '/api/azure-devops/deploy-cards') {
+      return {
+        status: 200,
+        body: await listDeployCards(config, teamSegment, searchParams),
+      };
     }
 
     if (pathname === '/api/azure-devops/sprint/current') {

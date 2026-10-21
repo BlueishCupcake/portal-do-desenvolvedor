@@ -73,6 +73,20 @@ describe('createMockAzureDevOpsService', () => {
       id: 99999,
       title: 'Deploy Sprint 42',
     });
+    await expect(service.listDeployCards('sprint-42')).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 88888, title: 'Deploy Sprint 42 (mock)' }),
+      ]),
+    );
+    await expect(
+      service.attachTasksToDeployCard(88888, {
+        description: 'Descrição',
+        workItemIds: [12345],
+      }),
+    ).resolves.toMatchObject({
+      id: 88888,
+      closedWorkItemIds: [12345],
+    });
   });
 
   it('supports delay, failures, empty filters and custom details', async () => {

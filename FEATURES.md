@@ -92,7 +92,9 @@ Rotas implementadas:
 | GET | `/work-items/:id` | work item `$expand=all` |
 | GET | `/pipelines` | builds `requestedFor` + `$top=50` |
 | GET | `/metrics` | WIQL + builds + PRs + VDM |
+| GET | `/deploy-cards?sprintId=` | itens da Sprint (mesmo escopo do Modo Lead) |
 | POST | `/deploy-cards` | work item JSON Patch |
+| POST | `/deploy-cards/:id/tasks` | anexa tarefas, atualiza descrição e fecha |
 
 ### Enriquecimento de work items
 
@@ -192,7 +194,8 @@ Flag booleana persistida. Quando liga:
 - A tabela mostra a coluna Responsável.
 - Aparece `DeveloperMultiSelect` (OR de vários nomes). Itens
   já marcados **não** são limpos ao mudar esse filtro.
-- Seleção de linhas (`selectedWorkItemIds`) habilita duas ações.
+- Seleção de linhas (`selectedWorkItemIds`) habilita três ações.
+- Coluna **Criado em** na tabela (`System.CreatedDate`).
 
 ### Pedido de PR
 
@@ -201,23 +204,46 @@ com id, título, responsável e URL. Só faz sentido com tarefas de
 um único desenvolvedor (a UI restringe o caso). Copia para a
 área de transferência.
 
-### Create deploy card
+### Criar cartão de deploy
+
+Arquivos: `DeployCardDialog`, `useCreateDeployCard`,
+`buildDeployCardDescription`.
 
 1. UI monta a descrição com `buildDeployCardDescription`:
-   aplicações (repo/projeto) das PRs cujo target é `main`,
-   links dessas PRs, Stories/Features relacionadas.
-2. `useCreateDeployCard` (mutation) POST
-   `/api/azure-devops/deploy-cards`.
+   - **Aplicações afetadas**: repo/projeto deduplicados das PRs
+     **concluídas** (`status === completed`) ligadas às tarefas
+     selecionadas (qualquer branch de destino).
+   - **Pull Requests**: mesmas PRs, agrupadas por repo/projeto;
+     rótulo com branch e id (`(branch) (!id)`).
+   - **Histórias/Funcionalidades**: itens relacionados + selecionados.
+2. `useCreateDeployCard` → POST `/api/azure-devops/deploy-cards`.
 3. BFF cria work item do tipo
    `AZURE_DEVOPS_DEPLOY_WORK_ITEM_TYPE` (padrão `Task`) via
-   JSON Patch: Title, Description (texto → HTML escapado),
-   IterationPath opcional e relations `System.LinkTypes.Related`
-   para cada id selecionado.
+   JSON Patch: Title, Description (markdown → HTML), IterationPath
+   (tarefa ou sprint atual) e relations `System.LinkTypes.Related`.
 
-No provider `mock` a criação é simulada. No `mcp` o método não
-cria item real. Só `rest` grava no Azure.
+PRs vêm do enriquecimento do board (`withDeployment` + artifact
+links no work item). Sem PR vinculada no Azure, a seção de
+aplicações fica vazia.
 
-## 5. To Do's
+### Adicionar tarefas a um cartão de deploy
+
+Arquivos: `AddToDeployCardDialog`, `useDeployCards`,
+`useAttachTasksToDeployCard`, `deployCardUnifiedWorkItems`.
+
+1. `useDeployCards` → GET `/deploy-cards?sprintId=…` — mesma WIQL
+   da sprint inteira no Lead Mode (qualquer tipo/estado de item).
+2. Dialog: select do cartão alvo + preview da descrição unificada
+   (`relatedIds` do cartão + tarefas selecionadas →
+   `buildDeployCardDescription`).
+3. POST `/deploy-cards/:id/tasks` com `{ description, workItemIds }`.
+4. BFF: PATCH descrição HTML, relations Related novas, PATCH
+   `System.State = Closed` em cada tarefa anexada.
+
+Lista e anexação recarregam ao abrir o dialog e após criar cartão.
+Providers: `rest` (Azure), `mock` (memória), `mcp` (não persiste).
+
+## 5. Anotações (To Do's)
 
 100% local. Sem Azure.
 
@@ -341,5 +367,7 @@ Pipelines                        usePipelines (30s) → GET /pipelines
 Notificações                     usePipelineNotifications (Notification API)
 Metrics                          useMetrics → GET /metrics
 Deploy card                      useCreateDeployCard → POST /deploy-cards
+Anexar ao deploy                 useAttachTasksToDeployCard → POST /deploy-cards/:id/tasks
+Listar deploys                   useDeployCards → GET /deploy-cards
 Filtros / busca / sort           useDashboardFilters (cliente)
 ```

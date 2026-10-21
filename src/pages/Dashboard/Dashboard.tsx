@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { useAzureDevOpsService } from '@/app/providers/azureDevOpsContext.ts';
 import { WorkItemBoard } from '@/components/Board/WorkItemBoard.tsx';
 import { EmptyState } from '@/components/EmptyState/EmptyState.tsx';
 import { ErrorState } from '@/components/ErrorState/ErrorState.tsx';
@@ -14,10 +15,12 @@ import { WorkItemFilters } from '@/components/WorkItem/WorkItemFilters.tsx';
 import { WorkItemSearch } from '@/components/WorkItem/WorkItemSearch.tsx';
 import { WorkItemSort } from '@/components/WorkItem/WorkItemSort.tsx';
 import { WorkItemDetails } from '@/components/WorkItemDetails/WorkItemDetails.tsx';
+import { useAttachTasksToDeployCard } from '@/hooks/useAttachTasksToDeployCard.ts';
 import { useCreateDeployCard } from '@/hooks/useCreateDeployCard.ts';
 import { useCurrentSprint } from '@/hooks/useCurrentSprint.ts';
 import { useCurrentUser } from '@/hooks/useCurrentUser.ts';
 import { useDashboardFilters } from '@/hooks/useDashboardFilters.ts';
+import { useDeployCards } from '@/hooks/useDeployCards.ts';
 import { useLeadMode } from '@/hooks/useLeadMode.ts';
 import { usePipelineNotifications } from '@/hooks/usePipelineNotifications.ts';
 import { usePipelines } from '@/hooks/usePipelines.ts';
@@ -42,7 +45,9 @@ export function Dashboard() {
   const { leadMode } = useLeadMode();
   const { view } = useWorkspaceView();
   const pipelinesQuery = usePipelines();
+  const azureDevOpsService = useAzureDevOpsService();
   const createDeployCard = useCreateDeployCard();
+  const attachTasksToDeployCard = useAttachTasksToDeployCard();
   const pipelineNotifications = usePipelineNotifications(pipelinesQuery.data ?? []);
   const userQuery = useCurrentUser();
   const sprintQuery = useCurrentSprint();
@@ -68,6 +73,14 @@ export function Dashboard() {
     userId: userQuery.data?.id,
     leadMode,
   });
+  const deployCardsQuery = useDeployCards(effectiveSprintValues, leadMode);
+  const loadDeployCardRelatedIds = useCallback(
+    async (deployCardId: number) => {
+      const details = await azureDevOpsService.getWorkItemDetails(deployCardId);
+      return details.relatedIds ?? [];
+    },
+    [azureDevOpsService],
+  );
   const provider = readEnv('VITE_AZURE_DEVOPS_PROVIDER', 'mock');
   const detailsQuery = useWorkItemDetails(selectedId);
   const filters = useDashboardFilters(workItemsQuery.data ?? []);
@@ -204,6 +217,24 @@ export function Dashboard() {
                     onSelectedIdsChange={setSelectedWorkItemIds}
                     onSelect={setSelectedId}
                     onCreateDeployCard={createDeployCard.mutateAsync}
+                    sprintIterationPath={selectedSprint?.path}
+                    onRefreshDeployCards={() => {
+                      void deployCardsQuery.refetch();
+                    }}
+                    onDeployCardsChanged={() => {
+                      void deployCardsQuery.refetch();
+                    }}
+                    deployCards={deployCardsQuery.data ?? []}
+                    isLoadingDeployCards={deployCardsQuery.isLoading}
+                    deployCardsError={readErrorMessage(deployCardsQuery.error)}
+                    onLoadDeployCardRelatedIds={loadDeployCardRelatedIds}
+                    onAttachTasksToDeployCard={(deployCardId, input) =>
+                      attachTasksToDeployCard.mutateAsync({ deployCardId, input })
+                    }
+                    onAttachedToDeployCard={() => {
+                      void workItemsQuery.refetch();
+                      void deployCardsQuery.refetch();
+                    }}
                   />
                 ) : null}
               </>

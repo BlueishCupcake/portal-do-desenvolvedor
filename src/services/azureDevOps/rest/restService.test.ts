@@ -120,8 +120,7 @@ describe('createRestAzureDevOpsService', () => {
         };
       }
 
-      if (url.endsWith('/deploy-cards')) {
-        expect(init?.method).toBe('POST');
+      if (url.includes('/deploy-cards') && init?.method === 'POST') {
         expect(JSON.parse(String(init?.body))).toMatchObject({
           title: 'Deploy Sprint 42',
           workItemIds: [88],

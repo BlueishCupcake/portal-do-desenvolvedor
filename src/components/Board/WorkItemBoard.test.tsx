@@ -88,6 +88,11 @@ describe('WorkItemBoard', () => {
     expect(
       screen.getByRole('button', { name: 'Criar cartão de deploy' }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: 'Adicionar tarefas a um card de deploy',
+      }),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Solicitar criação de PR' }));
 
