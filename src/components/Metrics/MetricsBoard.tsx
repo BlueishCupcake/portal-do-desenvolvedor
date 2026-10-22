@@ -1,8 +1,9 @@
-import { Button, Select, Spinner, Tabs, Text, TitleV2 } from '@poliedro/tamentai/web';
+import { Button, Select, Tabs, Text, TitleV2 } from '@poliedro/tamentai/web';
 import { useMemo, useState } from 'react';
 
 import { EmptyState } from '@/components/EmptyState/EmptyState.tsx';
 import { ErrorState } from '@/components/ErrorState/ErrorState.tsx';
+import { MetricsTabSkeleton } from '@/components/Loading/MetricsTabSkeleton.tsx';
 import { MetricCard } from '@/components/Metrics/MetricCard.tsx';
 import styles from '@/components/Metrics/MetricsBoard.module.css';
 import { MetricsBreakdown } from '@/components/Metrics/MetricsBreakdown.tsx';
@@ -16,6 +17,7 @@ import { uniqueSortedValues } from '@/utils/filterWorkItems.ts';
 import { formatDate } from '@/utils/formatDate.ts';
 import { filterMetricItems } from '@/utils/metrics/filterMetricItems.ts';
 import { filterMetricsByDevelopers } from '@/utils/metrics/filterMetricsByDevelopers.ts';
+import { isQuerySkeletonLoading } from '@/utils/isQuerySkeletonLoading.ts';
 import { sprintValue } from '@/utils/sprint.ts';
 
 const PERIOD_OPTIONS: Array<{ value: MetricPeriod; label: string }> = [
@@ -93,9 +95,15 @@ export function MetricsBoard() {
     : [];
   const selectedKpiLabel = metrics?.kpis.find((kpi) => kpi.id === selectedKpi)?.label;
   const showDeveloperFilter = scope !== 'personal' && developers.length > 0;
+  const needsSprint = period === 'current-sprint';
+  const metricsQueryEnabled = !needsSprint || Boolean(sprintId);
   const waitingSprint =
     period === 'current-sprint' && !sprintId && sprintQuery.isLoading;
-  const isLoading = metricsQuery.isLoading || waitingSprint;
+  const isMetricsLoading = isQuerySkeletonLoading(
+    metricsQuery,
+    metricsQueryEnabled,
+  );
+  const isLoading = isMetricsLoading || waitingSprint;
   const errorMessage =
     metricsQuery.error?.message ??
     (period === 'current-sprint' && !sprintId ? sprintQuery.error?.message : undefined);
@@ -198,11 +206,7 @@ export function MetricsBoard() {
         }}
       />
 
-      {isLoading ? (
-        <div role="status" aria-label="Carregando métricas">
-          <Spinner label="Carregando métricas..." showLabel />
-        </div>
-      ) : null}
+      {isLoading ? <MetricsTabSkeleton /> : null}
 
       {errorMessage ? (
         <ErrorState

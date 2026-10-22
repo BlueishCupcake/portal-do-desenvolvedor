@@ -11,11 +11,23 @@ describe('DashboardSkeleton', () => {
       screen.getByRole('status', { name: 'Carregando tarefas' }),
     ).toBeInTheDocument();
     expect(screen.getByText('Carregando tarefas...')).toBeInTheDocument();
+    expect(document.querySelectorAll('[aria-hidden="true"]').length).toBeGreaterThan(0);
   });
 
   it('renders a compact variant', () => {
     render(<DashboardSkeleton compact />);
 
     expect(screen.getByRole('status')).toBeInTheDocument();
+  });
+
+  it('renders in dark theme', () => {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    render(<DashboardSkeleton />);
+
+    expect(
+      screen.getByRole('status', { name: 'Carregando tarefas' }),
+    ).toBeInTheDocument();
+
+    document.documentElement.removeAttribute('data-theme');
   });
 });

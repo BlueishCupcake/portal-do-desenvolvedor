@@ -271,20 +271,6 @@ resultado, branch, horário, URL).
 `usePipelines` refaz a query a cada 30s
 (`refetchIntervalInBackground: true`).
 
-### Notificações
-
-`usePipelineNotifications`:
-
-1. Preferência em `portal-pipeline-notifications`.
-2. Só notifica se `Notification.permission === 'granted'`.
-3. Diff entre o mapa anterior e o atual
-   (`detectPipelineEvents`): started (entrou em
-   notStarted/inProgress) ou finished (`status === completed`).
-4. `Notification` com `tag` por run+status; clique foca a janela
-   e abre a URL do Azure.
-
-Sem Service Worker / Web Push: o portal precisa estar aberto.
-
 ## 7. Metrics (somente leitura)
 
 Não raspa dashboards nativos e não inventa KPI. Fontes: as mesmas
@@ -364,7 +350,6 @@ Sprint atual / lista             useCurrentSprint / useSprints
 Work items                       useWorkItems → GET /work-items
 Detalhes                         useWorkItemDetails → GET /work-items/:id
 Pipelines                        usePipelines (30s) → GET /pipelines
-Notificações                     usePipelineNotifications (Notification API)
 Metrics                          useMetrics → GET /metrics
 Deploy card                      useCreateDeployCard → POST /deploy-cards
 Anexar ao deploy                 useAttachTasksToDeployCard → POST /deploy-cards/:id/tasks

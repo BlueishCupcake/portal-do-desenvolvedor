@@ -15,6 +15,9 @@
   --shadow-soft: var(--shadow-low, 0 10px 30px rgba(15, 23, 42, 0.08));
   --radius-sm: 8px;
   --radius-md: 12px;
+  --skeleton-from: #e2e8f0;
+  --skeleton-via: #f1f5f9;
+  --skeleton-to: #e2e8f0;
   --font-sans: var(--typography-family-font-family-sans), 'Segoe UI', sans-serif;
   --status-development: #ca8a04;
   --status-qa: #2563eb;
@@ -80,4 +83,7 @@
   --color-gray-900: #f8fafc;
   --color-gray-800: #e2e8f0;
   --theme-foreground-foreground: #f8fafc;
+  --skeleton-from: #1e293b;
+  --skeleton-via: #334155;
+  --skeleton-to: #1e293b;
 }

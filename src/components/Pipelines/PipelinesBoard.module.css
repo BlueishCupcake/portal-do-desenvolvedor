@@ -5,17 +5,7 @@
 }
 
 .heading {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.5rem 1rem;
-}
-
-.notifications {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  display: grid;
   gap: 0.35rem;
 }
 
@@ -72,11 +62,4 @@
 .time {
   width: 11.5rem;
   white-space: nowrap;
-}
-
-@media (max-width: 720px) {
-  .notifications {
-    width: 100%;
-    align-items: flex-start;
-  }
 }

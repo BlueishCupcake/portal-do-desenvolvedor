@@ -22,7 +22,6 @@ import { useCurrentUser } from '@/hooks/useCurrentUser.ts';
 import { useDashboardFilters } from '@/hooks/useDashboardFilters.ts';
 import { useDeployCards } from '@/hooks/useDeployCards.ts';
 import { useLeadMode } from '@/hooks/useLeadMode.ts';
-import { usePipelineNotifications } from '@/hooks/usePipelineNotifications.ts';
 import { usePipelines } from '@/hooks/usePipelines.ts';
 import { useSprints } from '@/hooks/useSprints.ts';
 import { useWorkItemDetails } from '@/hooks/useWorkItemDetails.ts';
@@ -31,6 +30,7 @@ import { useWorkspaceView } from '@/hooks/useWorkspaceView.ts';
 import styles from '@/pages/Dashboard/Dashboard.module.css';
 import { countAssignedSprintCards } from '@/utils/countAssignedSprintCards.ts';
 import { readEnv } from '@/utils/env.ts';
+import { isQuerySkeletonLoading } from '@/utils/isQuerySkeletonLoading.ts';
 import { findSprint, mergeSprints, sprintValue } from '@/utils/sprint.ts';
 import { sumAssignedStoryPoints } from '@/utils/sumAssignedStoryPoints.ts';
 
@@ -48,7 +48,6 @@ export function Dashboard() {
   const azureDevOpsService = useAzureDevOpsService();
   const createDeployCard = useCreateDeployCard();
   const attachTasksToDeployCard = useAttachTasksToDeployCard();
-  const pipelineNotifications = usePipelineNotifications(pipelinesQuery.data ?? []);
   const userQuery = useCurrentUser();
   const sprintQuery = useCurrentSprint();
   const sprintsQuery = useSprints();
@@ -93,10 +92,15 @@ export function Dashboard() {
     }
   }, [leadMode, setSelectedDevelopers]);
 
+  const workItemsQueryEnabled =
+    effectiveSprintValues.length > 0 && (leadMode || Boolean(userQuery.data?.id));
+  const isWorkItemsLoading = isQuerySkeletonLoading(
+    workItemsQuery,
+    workItemsQueryEnabled,
+  );
+  const isPipelinesLoading = isQuerySkeletonLoading(pipelinesQuery);
   const isLoading =
-    userQuery.isLoading ||
-    sprintQuery.isLoading ||
-    (workItemsQuery.isLoading && !workItemsQuery.data);
+    userQuery.isLoading || sprintQuery.isLoading || isWorkItemsLoading;
   const errorMessage =
     readErrorMessage(userQuery.error) ??
     readErrorMessage(sprintQuery.error) ??
@@ -124,9 +128,8 @@ export function Dashboard() {
         <main className={styles.main}>
           <PipelinesBoard
             runs={pipelinesQuery.data ?? []}
-            isLoading={pipelinesQuery.isLoading}
+            isLoading={isPipelinesLoading}
             errorMessage={readErrorMessage(pipelinesQuery.error)}
-            notifications={pipelineNotifications}
             onRetry={() => {
               void pipelinesQuery.refetch();
             }}

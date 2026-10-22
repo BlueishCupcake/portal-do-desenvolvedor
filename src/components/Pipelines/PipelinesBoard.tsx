@@ -1,7 +1,8 @@
-import { Button, Links, Spinner, Text, TitleV2 } from '@poliedro/tamentai/web';
+import { Links, Text, TitleV2 } from '@poliedro/tamentai/web';
 
 import { EmptyState } from '@/components/EmptyState/EmptyState.tsx';
 import { ErrorState } from '@/components/ErrorState/ErrorState.tsx';
+import { PipelinesTabSkeleton } from '@/components/Loading/PipelinesTabSkeleton.tsx';
 import styles from '@/components/Pipelines/PipelinesBoard.module.css';
 import { PipelineStatus } from '@/components/Pipelines/PipelineStatus.tsx';
 import type { PipelineRun } from '@/types/pipeline.ts';
@@ -10,13 +11,6 @@ interface PipelinesBoardProps {
   runs: PipelineRun[];
   isLoading: boolean;
   errorMessage: string | null;
-  notifications: {
-    supported: boolean;
-    enabled: boolean;
-    permission: NotificationPermission;
-    requestPermission: () => Promise<void>;
-    disable: () => void;
-  };
   onRetry: () => void;
 }
 
@@ -40,55 +34,16 @@ export function PipelinesBoard({
   runs,
   isLoading,
   errorMessage,
-  notifications,
   onRetry,
 }: PipelinesBoardProps) {
   return (
     <section className={styles.section} aria-label="Pipelines do usuário">
       <div className={styles.heading}>
-        <div>
-          <TitleV2 variant="h2">Pipelines</TitleV2>
-          <Text color="muted">Execuções solicitadas em seu nome</Text>
-        </div>
-        <div className={styles.notifications}>
-          {notifications.supported ? (
-            <Button
-              type="button"
-              color="secondary"
-              variant={notifications.enabled ? 'solid' : 'outline'}
-              disabled={
-                !notifications.enabled && notifications.permission === 'denied'
-              }
-              onClick={() => {
-                if (notifications.enabled) {
-                  notifications.disable();
-                } else {
-                  void notifications.requestPermission();
-                }
-              }}
-            >
-              {notifications.enabled
-                ? 'Desativar notificações'
-                : notifications.permission === 'denied'
-                  ? 'Notificações bloqueadas'
-                  : 'Ativar notificações'}
-            </Button>
-          ) : (
-            <Text color="muted">Notificações não suportadas neste navegador</Text>
-          )}
-          {notifications.permission === 'denied' && notifications.supported ? (
-            <Text variant="caption" color="muted">
-              Libere as notificações nas configurações do navegador.
-            </Text>
-          ) : null}
-        </div>
+        <TitleV2 variant="h2">Pipelines</TitleV2>
+        <Text color="muted">Execuções solicitadas em seu nome</Text>
       </div>
 
-      {isLoading ? (
-        <div role="status" aria-label="Carregando pipelines">
-          <Spinner label="Carregando pipelines..." showLabel />
-        </div>
-      ) : null}
+      {isLoading ? <PipelinesTabSkeleton /> : null}
 
       {errorMessage ? (
         <ErrorState

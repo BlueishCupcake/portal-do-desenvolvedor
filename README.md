@@ -69,10 +69,7 @@ A aba Pipelines mostra as 50 execuções mais recentes:
 - com nome, número, status, resultado, branch, horário e link para o Azure
   DevOps.
 
-A atualização acontece a cada 30 segundos. O usuário pode ativar notificações
-do navegador para receber avisos quando uma pipeline começar ou terminar.
-O portal precisa permanecer aberto; notificações com o navegador fechado
-exigiriam Web Push ou Service Hooks em um backend.
+A atualização acontece a cada 30 segundos enquanto o portal permanece aberto.
 
 ### Metrics
 
@@ -198,17 +195,6 @@ definições do projeto podem ser consultadas.
 O PAT é opaco e não contém o nome diretamente. O servidor usa o PAT para
 autenticar nos endpoints de conexão e perfil do Azure DevOps. Nome completo,
 e-mail e ID exibidos no portal correspondem ao proprietário autenticado do PAT.
-
-## Notificações de pipelines
-
-1. Abra a aba **Pipelines**.
-2. Clique em **Ativar notificações**.
-3. Autorize as notificações no navegador.
-4. Mantenha o portal aberto.
-
-Se a permissão tiver sido bloqueada, libere-a nas configurações do navegador
-para o endereço do portal. A preferência de ativação é salva no
-`localStorage`.
 
 ## Execução
 

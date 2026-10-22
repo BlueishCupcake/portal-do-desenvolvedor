@@ -5,14 +5,6 @@ import { describe, expect, it, vi } from 'vitest';
 import { PipelinesBoard } from '@/components/Pipelines/PipelinesBoard.tsx';
 import { mockPipelines } from '@/services/azureDevOps/mock/mockData.ts';
 
-const notifications = {
-  supported: true,
-  enabled: false,
-  permission: 'default' as NotificationPermission,
-  requestPermission: vi.fn(async () => {}),
-  disable: vi.fn(),
-};
-
 describe('PipelinesBoard', () => {
   it('lists running and completed pipelines with Azure links', () => {
     render(
@@ -20,7 +12,6 @@ describe('PipelinesBoard', () => {
         runs={mockPipelines}
         isLoading={false}
         errorMessage={null}
-        notifications={notifications}
         onRetry={vi.fn()}
       />,
     );
@@ -42,7 +33,6 @@ describe('PipelinesBoard', () => {
         runs={[]}
         isLoading
         errorMessage={null}
-        notifications={notifications}
         onRetry={onRetry}
       />,
     );
@@ -54,7 +44,6 @@ describe('PipelinesBoard', () => {
         runs={[]}
         isLoading={false}
         errorMessage="PAT sem permissão"
-        notifications={notifications}
         onRetry={onRetry}
       />,
     );
@@ -66,31 +55,9 @@ describe('PipelinesBoard', () => {
         runs={[]}
         isLoading={false}
         errorMessage={null}
-        notifications={notifications}
         onRetry={onRetry}
       />,
     );
     expect(screen.getByText('Nenhuma pipeline encontrada')).toBeInTheDocument();
-  });
-
-  it('requests permission from the notification button', async () => {
-    const user = userEvent.setup();
-    const requestPermission = vi.fn(async () => {});
-
-    render(
-      <PipelinesBoard
-        runs={mockPipelines}
-        isLoading={false}
-        errorMessage={null}
-        notifications={{ ...notifications, requestPermission }}
-        onRetry={vi.fn()}
-      />,
-    );
-
-    await user.click(
-      screen.getByRole('button', { name: 'Ativar notificações' }),
-    );
-
-    expect(requestPermission).toHaveBeenCalledOnce();
   });
 });
